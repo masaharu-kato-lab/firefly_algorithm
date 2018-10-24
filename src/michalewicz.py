@@ -1,5 +1,7 @@
 import numpy as np
 
+# ref: https://www.sfu.ca/~ssurjano/michal.html
+
 def michalewicz(x, m):
     if(np.isscalar(x)):
         ret = -np.sin(x) * np.sin(x ** 2 / np.pi) ** (2 * m)
