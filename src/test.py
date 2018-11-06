@@ -13,7 +13,7 @@ x = np.random.normal(0, sd, n)
 
 # Run firefly algorythm
 x = firefly(
-    n_gen = 1,
+    n_gen = 1000,
     x = x,
     distance = lambda p, q: np.linalg.norm(q - p),
     I = I,
