@@ -7,7 +7,7 @@ import numpy as np
 np.random.seed(123456)
 
 n = 100
-sd = 3.0
+sd = 2.0
 I = lambda x: michalewicz(x, 10)
 x = np.random.normal(0, sd, n)
 
@@ -17,14 +17,13 @@ while True:
 
     # Run firefly algorythm
     x = firefly(
-        n_gen = 1,
         x = x,
         distance = lambda p, q: np.linalg.norm(q - p),
         I = I,
-        alpha = lambda t: 1,
-        beta = 1,
+        alpha = 1,
+        beta = 0.5,
         gamma = 1,
-        epsilon = lambda t: 0,
+        epsilon = np.random.randn(),
     )
 
 
