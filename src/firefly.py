@@ -1,6 +1,8 @@
 import math
 
-def firefly(*, n_gen, n, x, distance, I, alpha, beta, gamma, epsilon):
+# Basic firefly algorythm
+def firefly(*, n_gen, x, distance, I, alpha, beta, gamma, epsilon):
+    n = len(x)
     for t in range(n_gen):
         for i in range(n):
             for j in range(i):
