@@ -3,25 +3,37 @@ import tsp.distance
 from pprint import pprint
 import numpy as np
 import random
-import discrete_firefly as df
+import discrete_firefly
 from datetime import datetime
+import time
+from tsp.nodes import Nodes
 
 # Load nodes and coordinates from tsp file
 (datalist, options) = tsp.file.load('res/oliver30.tsp')
 
-coords = datalist['NODE_COORD_SECTION']
-nodes = list(coords)
-
+nodes = Nodes(
+	coords = datalist['NODE_COORD_SECTION'],
+	func_distance = tsp.distance.euclid
+)
 
 
 # Set seed value of random
-seed = random.randrange(2 ** 32 - 1)
+# seed = random.randrange(2 ** 32 - 1)
+seed = 2405767257
 np.random.seed(seed=seed)
 
 n = 100
-x = df.sample(nodes, n)
+I = lambda p : nodes.distance(p)
 
-I = lambda p : tsp.distance.calc(coords, p, tsp.distance.euclid)
+x = [0] * nodes.length
+for i in range(len(x)): x[i] = np.random.permutation(nodes.names)
+
+ffproc = discrete_firefly.Firefly(
+	x = x,
+	nodes = nodes,
+	I = I,
+#	debug_out= True,
+)
 
 
 today = datetime.now()
@@ -34,20 +46,25 @@ with open(output_filename, mode='a') as f:
 	print('n: {:}'.format(n), file=f)
 
 
+
 # Run firefly algorythm
 t = 0
 while(True):
-	x = df.firefly(
-		x = x,
-		I = I,
-		alpha = 15.0,
-		gamma = 1.0,
+	start_time = time.time()
+
+	ffproc.calcOnce(
+		gamma = 0.1,
+		alpha = 2.0
 	)
-	
-	Ix = list(map(I, x))
-	min_x_i = np.argmin(Ix)
+
+	elapsed_time = time.time() - start_time
 
 	with open(output_filename, mode='a') as f:
-		print('[{:>8}] {:>9} at'.format(t, I(x[min_x_i])), x[min_x_i], file=f)
+		print(
+			'[{:>8}] {:>9} at'.format(t, ffproc.min_Ix),
+			ffproc.min_x,
+			' ({:7.4f} sec)'.format(elapsed_time),
+			file = f
+		)
 
 	t = t + 1
