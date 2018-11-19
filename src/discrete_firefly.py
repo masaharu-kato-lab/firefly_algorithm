@@ -6,6 +6,7 @@ import time
 import itertools
 from tsp.nodes import Nodes
 
+# Firefly algorithm class
 class Firefly:
 
     def __init__(self, *,
@@ -18,22 +19,25 @@ class Firefly:
         self.I = I
         self.Ix = None
         self.debug_out = debug_out
+        self.setX(x)
 
+
+    # Set new positions
+    def setX(self, x):
         self.x = x
-        self.aggregate()
 
-
+        self.Ix = list(map(self.I, self.x))
+        self.min_node = np.argmin(self.Ix)
+        self.min_x  = self.x[self.min_node]
+        self.min_Ix = self.Ix[self.min_node]
+        
 
     # Calc firefly algorithm once
-    def calcOnce(self, *,
-        gamma    : float,         # Constant Gamma
-        alpha    : float,         # Constant Alpha
-    ) -> list: # Returns positions of fireflies after calculation
+    def calcOnce(self, *, gamma: float, alpha: float):
         
         # New positions of fireflies
         new_x = deepcopy(self.x)
         
-        time_bv = 0
         time_bs = 0
         time_as = 0
 
@@ -43,12 +47,10 @@ class Firefly:
                 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
                 if self.Ix[i] > self.Ix[j]:
-                    time0 = time.time()
-
-                    beta = 1 / (1 + gamma * distance.hamming(self.x[i], self.x[j]))
 
                     time1 = time.time()
 
+                    beta = 1 / (1 + gamma * distance.hamming(self.x[i], self.x[j]))
                     new_beta_x = self.beta_step(self.x[i], self.x[j], beta)
 
                     time2 = time.time()
@@ -57,97 +59,79 @@ class Firefly:
 
                     time3 = time.time()
 
-                    time_bv += time1 - time0
                     time_bs += time2 - time1
                     time_as += time3 - time2
 
 
         # Output processing time
-        print({'bv': time_bv, 'bs':time_bs, 'as':time_as})
+        print({'bs':time_bs, 'as':time_as})
 
-        self.x = new_x
-        self.aggregate()
-
-
-    def aggregate(self):
-        self.Ix = list(map(self.I, self.x))
-        min_index = np.argmin(self.Ix)
-        self.min_x = self.x[min_index]
-        self.min_Ix = self.I(self.min_x)
-
-
-    def intersection(self, p, q):
-
-        if(len(p) != len(q)): raise RuntimeError('Invalid length of permutations')
-
-        r = [None] * len(p)
-        remain_nodes = deepcopy(self.nodes.names)
-        remain_indexes = list(range(len(p)))
-
-        for i, (cp, cq, cr) in enumerate(zip(p, q, r)):
-            if(cp == cq):
-                cr = cp
-                remain_nodes.remove(cr)
-                remain_indexes.remove(i)
-        
-        return (r, remain_nodes, remain_indexes)
-        
+        self.setX(new_x)
 
 
     def beta_step(self, p1, p2, beta : float):
 
-        (p12, remain_nodes, remain_indexes) = self.intersection(p1, p2)
+        #print('p1:', p1)
+        #print('p2:', p2)
 
-        if self.debug_out:
-            print('p12:', p12, ', rn:', remain_nodes, ', ri:', remain_indexes)
-
-        for i, (cp12, cp1, cp2) in enumerate(zip(p12, p1, p2)):
-            if(cp12 != None): continue
-
-            candidate = cp1 if(np.random.rand() > beta) else cp2
-
-            if(candidate in remain_nodes):
-                cp12 = candidate
-                remain_nodes.remove(candidate)
-                remain_indexes.remove(i)
+        p12 = [None] * len(p1)
+        empty_nodes = deepcopy(self.nodes.names)
+        empty_indexes = list(range(len(p1)))
 
 
-        if(len(remain_indexes) != len(remain_nodes)): raise RuntimeError('Invalid remain nodes and indexes')
+        # calc intersection of p1 and p2
+        for i in empty_indexes:
+            if(p1[i] == p2[i]):
+                p12[i] = p1[i]
+                empty_nodes.remove(p12[i])
+                empty_indexes.remove(i)
 
-        if(len(remain_nodes)):
-            shuffled_remain_nodes = np.random.permutation(list(remain_nodes))
-            for cindex, cnode in zip(remain_indexes, shuffled_remain_nodes):
-                p12[cindex] = cnode
+        #print('b1:', p12)
 
+
+        # fill empty indexes in p12
+        for i in empty_indexes:
+
+            # choose candidate node from p1's node or p2's based on beta value
+            candidate_node = p1[i] if(np.random.rand() > beta) else p2[i]
+
+            # fill with chosen candidate node if it doesn't already exist in p12
+            if(candidate_node in empty_nodes):
+                p12[i] = candidate_node
+                empty_nodes.remove(candidate_node)
+                empty_indexes.remove(i)
+
+        #print('b2:', p12)
+
+
+        # fill still empty indexes in p12 (if exists)
+        if(len(empty_nodes)):
+
+            # fill empty indexes randomly
+            shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+            for i, p12_i in enumerate(empty_indexes):
+                p12[p12_i] = shuffled_empty_nodes[i]
+
+
+        #print('b3:', p12)
         return p12
 
 
 
     def alpha_step(self, p, alpha : int):
 
-        return self.alpha_step_internal(
-            p, 
-            np.random.permutation(self.nodes.indexes)[0:alpha]
-        )
+        # if(alpha <= 1) return p
 
-
-
-    def alpha_step_internal(self, p, target_indexes : list):
-
-    #    if len(target_indexes) <= 1: return p
-
-        new_p = deepcopy(p)
-
+        # alpha 個の index を shuffle する
+        target_indexes = np.random.permutation(self.nodes.indexes)[0:alpha]
         shuffled_target_indexes = np.random.permutation(target_indexes)
 
-        if self.debug_out:
-            print('target_indexes:', target_indexes, ', shuffled_target_indexes:', shuffled_target_indexes)
-
+        # shuffle target indexes
+        new_p = deepcopy(p)
         for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
             new_p[shuffled_index] = p[index]
-            
-        if self.debug_out:
-            print('alpha p12 :', new_p)
 
+
+        #print('a1:', new_p)
         return new_p
 

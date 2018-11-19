@@ -18,14 +18,14 @@ nodes = Nodes(
 
 
 # Set seed value of random
-# seed = random.randrange(2 ** 32 - 1)
-seed = 2405767257
+seed = random.randrange(2 ** 32 - 1)
+# seed = 2405767257
 np.random.seed(seed=seed)
 
-n = 100
+n = 200
 I = lambda p : nodes.distance(p)
 
-x = [0] * nodes.length
+x = [0] * n
 for i in range(len(x)): x[i] = np.random.permutation(nodes.names)
 
 ffproc = discrete_firefly.Firefly(
@@ -49,22 +49,34 @@ with open(output_filename, mode='a') as f:
 
 # Run firefly algorythm
 t = 0
+alpha = 2.0
+prev_min_node = None
 while(True):
 	start_time = time.time()
 
 	ffproc.calcOnce(
-		gamma = 0.1,
-		alpha = 2.0
+		gamma = 1.0,
+		alpha = alpha
 	)
 
 	elapsed_time = time.time() - start_time
 
 	with open(output_filename, mode='a') as f:
 		print(
-			'[{:>8}] {:>9} at'.format(t, ffproc.min_Ix),
+			'[{:>8}] {:>9} at {:>6}'.format(t, ffproc.min_Ix, ffproc.min_node),
 			ffproc.min_x,
-			' ({:7.4f} sec)'.format(elapsed_time),
+			' alpha={:7.4f} ({:7.4f} sec)'.format(alpha, elapsed_time),
 			file = f
 		)
+	
+
+	# if(ffproc.min_node != prev_min_node):
+	# 	alpha = 1.0
+	# else:
+	# 	alpha *= 1.1
+	# 	if(alpha > nodes.length): alpha = nodes.length
+
+	prev_min_node = ffproc.min_node
+
 
 	t = t + 1
