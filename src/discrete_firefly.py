@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import distance 
-from copy import deepcopy
+import copy
 import time
 import itertools
 from tsp.nodes import Nodes
@@ -36,22 +36,32 @@ class Firefly:
     def calcOnce(self, *, gamma: float, alpha: float):
         
         # New positions of fireflies
-        new_x = deepcopy(self.x)
+        new_x = np.copy(self.x)
         
         time_bs = 0
         time_as = 0
 
+        count_loop = 0
+        count_calc = 0
+
         # Repeats for all combinations of fireflies
         for i in range(len(self.x)):
             for j in range(i):
+
+                count_loop += 1
                 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
                 if self.Ix[i] > self.Ix[j]:
 
+                    count_calc += 1
+
                     time1 = time.time()
 
-                    beta = 1 / (1 + gamma * distance.hamming(self.x[i], self.x[j]))
-                    new_beta_x = self.beta_step(self.x[i], self.x[j], beta)
+                    new_beta_x = self.beta_step(
+                        self.x[i],
+                        self.x[j],
+                        1 / (1 + gamma * distance.hamming(self.x[i], self.x[j]))
+                    )
 
                     time2 = time.time()
                     
@@ -62,31 +72,28 @@ class Firefly:
                     time_bs += time2 - time1
                     time_as += time3 - time2
 
+                    if(not self.is_valid(new_x[i])): raise RuntimeError('Invalid permutation.')
+
 
         # Output processing time
-        print({'bs':time_bs, 'as':time_as})
+        print('beta: {:7.4f}sec, alpha: {:7.4f}sec, calc: {:>6} / {:>6}'.format(time_bs, time_as, count_calc, count_loop))
 
         self.setX(new_x)
 
 
+
     def beta_step(self, p1, p2, beta : float):
 
-        #print('p1:', p1)
-        #print('p2:', p2)
-
         p12 = [None] * len(p1)
-        empty_nodes = deepcopy(self.nodes.names)
-        empty_indexes = list(range(len(p1)))
-
-
+        empty_nodes   = copy.copy(self.nodes.names)
+        empty_indexes = copy.copy(self.nodes.indexes)
+        
         # calc intersection of p1 and p2
-        for i in empty_indexes:
+        for i in self.nodes.indexes: # DO NOT 'for i in empty_indexes'
             if(p1[i] == p2[i]):
                 p12[i] = p1[i]
                 empty_nodes.remove(p12[i])
                 empty_indexes.remove(i)
-
-        #print('b1:', p12)
 
 
         # fill empty indexes in p12
@@ -101,10 +108,7 @@ class Firefly:
                 empty_nodes.remove(candidate_node)
                 empty_indexes.remove(i)
 
-        #print('b2:', p12)
 
-
-        # fill still empty indexes in p12 (if exists)
         if(len(empty_nodes)):
 
             # fill empty indexes randomly
@@ -113,25 +117,40 @@ class Firefly:
                 p12[p12_i] = shuffled_empty_nodes[i]
 
 
-        #print('b3:', p12)
         return p12
 
 
 
     def alpha_step(self, p, alpha : int):
 
-        # if(alpha <= 1) return p
+        # print('alpha:{:}'.format(alpha))
+
+        if(alpha <= 1): return p
 
         # alpha 個の index を shuffle する
         target_indexes = np.random.permutation(self.nodes.indexes)[0:alpha]
         shuffled_target_indexes = np.random.permutation(target_indexes)
 
         # shuffle target indexes
-        new_p = deepcopy(p)
+        new_p = np.copy(p)
         for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
             new_p[shuffled_index] = p[index]
 
-
         #print('a1:', new_p)
         return new_p
+
+
+    # check validity
+    def is_valid(self, perm):
+        nodes = copy.copy(self.nodes.names)
+        for p in perm:
+            if(p in nodes):
+                nodes.remove(p)
+            else:
+                return False
+
+        if len(nodes):
+            return False
+
+        return True
 

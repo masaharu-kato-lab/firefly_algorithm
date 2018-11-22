@@ -5,7 +5,7 @@ class Nodes:
         self.names = list(coords)
         self.func_distance = func_distance
         self.length = len(coords)
-        self.indexes = range(self.length)
+        self.indexes = list(range(self.length))
 
     def distance(self, perm : list):
 
