@@ -8,6 +8,7 @@ import time
 
 def firefly_solution(*,
 	nodes  : object,
+	seed   : int = None,
 	number : int,
 	gamma  : float,
 	alpha  : float,
@@ -15,9 +16,8 @@ def firefly_solution(*,
 	):
 
 	# Set seed value of random
-	seed = random.randrange(2 ** 32 - 1)
-	# seed = 3135732058
-	np.random.seed(seed=seed)
+	if seed == None: seed = random.randrange(2 ** 32 - 1)
+	np.random.seed(seed = seed)
 
 	x = [0] * number
 	for i in range(len(x)): x[i] = np.random.permutation(nodes.names)
@@ -47,6 +47,7 @@ def firefly_solution(*,
 	# Run firefly algorythm
 	t = 0
 	prev_min_node = None
+	sum_elasped_time = 0
 
 	while(t < tlen):
 
@@ -55,11 +56,12 @@ def firefly_solution(*,
 		ffproc.calcOnce(gamma = gamma, alpha = alpha)
 
 		elapsed_time = time.time() - start_time
-
+		sum_elasped_time += elapsed_time
 
 		with open(output_filename, mode='a') as f:
 			if(prev_min_node != ffproc.min_node):
-				print('[{:>8}] {:>9} at {:>6} [{:}] ({:7.4f} sec)'.format(t, ffproc.min_Ix, ffproc.min_node, ','.join(map(str, ffproc.min_x)) , elapsed_time), file = f)
+				print('[{:>8}] {:>9} at {:>6} [{:}] ({:7.4f} sec)'.format(t, ffproc.min_Ix, ffproc.min_node, ','.join(map(str, ffproc.min_x)) , sum_elasped_time), file = f)
+				sum_elasped_time = 0
 
 
 		prev_min_node = ffproc.min_node

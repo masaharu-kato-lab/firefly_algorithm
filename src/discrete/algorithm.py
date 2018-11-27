@@ -77,7 +77,8 @@ class Firefly:
 
 
         # Output processing time
-        print('beta: {:7.4f}sec, alpha: {:7.4f}sec, calc: {:>6} / {:>6}'.format(time_bs, time_as, count_calc, count_loop))
+        if self.debug_out:
+            print('beta: {:7.4f}sec, alpha: {:7.4f}sec, calc: {:>6} / {:>6}'.format(time_bs, time_as, count_calc, count_loop))
 
         self.setX(new_x)
 
@@ -129,7 +130,7 @@ class Firefly:
         if(alpha <= 1): return p
 
         # alpha 個の index を shuffle する
-        target_indexes = np.random.permutation(self.nodes.indexes)[0:alpha]
+        target_indexes = np.random.choice(self.nodes.indexes, alpha)
         shuffled_target_indexes = np.random.permutation(target_indexes)
 
         # shuffle target indexes
