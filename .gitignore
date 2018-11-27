@@ -104,5 +104,6 @@ venv.bak/
 .mypy_cache/
 
 
-# output folder
+# output folders and files
 out/
+nohup.out
