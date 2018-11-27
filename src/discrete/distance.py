@@ -1,5 +1,9 @@
 import numpy as np
 
+def hamming(p, q):
+    if(len(p) != len(q)): raise RuntimeError('length of two permutations not equals.')
+    return len(p) - np.count_nonzero(p == q)
+
 # Hamming distance
 # def hamming(p, q):
 #     if(len(p) != len(q)): raise RuntimeError('length of two permutations not equals.')
@@ -10,7 +14,3 @@ import numpy as np
 #             d += 1
 
 #     return d
-
-def hamming(p, q):
-    if(len(p) != len(q)): raise RuntimeError('length of two permutations not equals.')
-    return len(p) - np.count_nonzero(p == q)

@@ -1,23 +1,24 @@
 import math
 import numpy as np
-import distance 
 import copy
 import time
 import itertools
-from tsp.nodes import Nodes
+import objects
 
 # Firefly algorithm class
 class Firefly:
 
     def __init__(self, *,
         x           : dict ,         # Initial positions
-        nodes       : Nodes,         # Nodes Object
+        nodes       : objects.Nodes, # Nodes Object
         I           : callable,      # Objective Function (Originally means light intensity of fireflies)
+        distance    : callable,      # Distance Function (calcs distance between two positions)
         debug_out   : bool = False,  # Whether to output information for debugging
     ):
         self.nodes = nodes
         self.I = I
         self.Ix = None
+        self.distance = distance
         self.debug_out = debug_out
         self.setX(x)
 
@@ -60,7 +61,7 @@ class Firefly:
                     new_beta_x = self.beta_step(
                         self.x[i],
                         self.x[j],
-                        1 / (1 + gamma * distance.hamming(self.x[i], self.x[j]))
+                        1 / (1 + gamma * self.distance(self.x[i], self.x[j]))
                     )
 
                     time2 = time.time()

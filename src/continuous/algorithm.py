@@ -1,12 +1,11 @@
 import math
 import numpy as np
-from typing import Callable
 
 # Calc firefly algorithm once
 def firefly(*,
         x        : list,         # Initial positions of fireflies
-        distance : Callable,     # Function to calculate distance between two fireflies
-        I        : Callable,     # Objective Function (Originally means light intensity of fireflies)
+        distance : callable,     # Function to calculate distance between two fireflies
+        I        : callable,     # Objective Function (Originally means light intensity of fireflies)
         alpha    : float,        # Constant Alpha
         beta     : float,        # Constant Beta
         gamma    : float,        # Constant Gamma

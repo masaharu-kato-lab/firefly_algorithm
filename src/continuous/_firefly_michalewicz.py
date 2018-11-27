@@ -1,5 +1,5 @@
-from firefly import firefly
-from michalewicz import michalewicz
+import algorithm
+import benchmarks
 import matplotlib.pyplot as plt
 import random
 import sys
@@ -12,7 +12,7 @@ print('seed: {:}'.format(seed))
 np.random.seed(seed=seed)
 
 n = 100
-I = lambda x: michalewicz(x, 10)
+I = lambda x: benchmarks.michalewicz(x, 10)
 # I = lambda x: x ** 4 - 20 * x ** 2 + 20 * x
 # sd = 5.0
 # x = np.random.normal(0, sd, n)
@@ -22,7 +22,7 @@ print(x)
 
 # Run firefly algorythm
 for t in range(100):
-	x = firefly(
+	x = algorithm.firefly(
 		x = x,
 		distance = lambda p, q: np.linalg.norm(q - p),
 		I = I,
