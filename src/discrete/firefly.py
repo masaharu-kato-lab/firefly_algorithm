@@ -9,7 +9,7 @@ import objects
 class Algorithm:
 
     def __init__(self, *,
-        x         : list ,         # Initial positions (list of list)
+        x         : list ,         # Initial fireflies's permutation (list of list)
         nodes     : objects.Nodes, # Nodes Object
         I         : callable,      # Objective Function (Originally means light intensity of fireflies)
         distance  : callable,      # Distance Function (calcs distance between two positions)
@@ -23,14 +23,12 @@ class Algorithm:
         self.setX(x)
 
 
-    # Set new positions
+    # Set new fireflies
     def setX(self, x):
         self.x = x
 
         self.Ix = list(map(self.I, self.x))
         self.min_node = np.argmin(self.Ix)
-        self.min_x  = self.x[self.min_node]
-        self.min_Ix = self.Ix[self.min_node]
         
 
     # Calc firefly algorithm once
@@ -58,22 +56,20 @@ class Algorithm:
 
                     time1 = time.time()
 
-                    new_beta_x = self.beta_step(
-                        self.x[i],
-                        self.x[j],
-                        1 / (1 + gamma * self.distance(self.x[i], self.x[j]))
-                    )
+                    beta = 1 / (1 + gamma * self.distance(self.x[i], self.x[j]))
+                    new_beta_x = self.betaStep(self.x[i], self.x[j], beta)
 
                     time2 = time.time()
                     
-                    new_x[i] = self.alpha_step(new_beta_x, int(np.random.rand() * alpha + 1.0))
+                    new_x[i] = self.alphaStep(new_beta_x, int(np.random.rand() * alpha + 1.0))
 
                     time3 = time.time()
 
                     time_bs += time2 - time1
                     time_as += time3 - time2
 
-                    if(not self.is_valid(new_x[i])): raise RuntimeError('Invalid permutation.')
+                    if(not self.isValid(new_x[i])):
+                        raise RuntimeError('Invalid permutation.')
 
 
         # Output processing time
@@ -83,8 +79,8 @@ class Algorithm:
         self.setX(new_x)
 
 
-
-    def beta_step(self, p1, p2, beta : float):
+    # Beta step (attract between p1 and p2 based on beta value)
+    def betaStep(self, p1, p2, beta : float):
 
         p12 = [None] * len(p1)
         empty_nodes   = copy.copy(self.nodes.names)
@@ -123,7 +119,8 @@ class Algorithm:
 
 
 
-    def alpha_step(self, p, alpha : int):
+    # Alpha step (randomly swap nodes in permutation based on alpha value)
+    def alphaStep(self, p, alpha : int):
 
         # print('alpha:{:}'.format(alpha))
 
@@ -143,7 +140,7 @@ class Algorithm:
 
 
     # check validity
-    def is_valid(self, perm):
+    def isValid(self, perm):
         nodes = copy.copy(self.nodes.names)
         for p in perm:
             if(p in nodes):
@@ -155,4 +152,15 @@ class Algorithm:
             return False
 
         return True
+
+
+
+    def getMinNode(self):
+        return self.min_node
+
+    def getMinX(self):
+        return self.x[self.min_node]
+
+    def getMinIx(self):
+        return self.Ix[self.min_node]
 

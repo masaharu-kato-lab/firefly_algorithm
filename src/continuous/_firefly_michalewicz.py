@@ -1,10 +1,7 @@
 import firefly
 import benchmarks
-import matplotlib.pyplot as plt
 import random
-import sys
 import numpy as np
-import subprocess
 
 # Set seed value of random
 seed = random.randrange(2 ** 32 - 1)

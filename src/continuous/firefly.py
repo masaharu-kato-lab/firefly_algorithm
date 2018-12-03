@@ -10,7 +10,7 @@ def algorithm(*,
         beta     : float,        # Constant Beta
         gamma    : float,        # Constant Gamma
         epsilon  : float,        # Constant Epsilon
-        debug_out : bool = False # Whether to output information for debugging
+        verbose  : bool = False  # Whether to output information for debugging
     ) -> list: # Returns positions of fireflies after calculation
     
     # New positions of fireflies
@@ -26,7 +26,7 @@ def algorithm(*,
                 new_x[i] += beta * math.exp(-gamma * np.power(distance(x[i], x[j]), 2)) * (x[j] - x[i]) + alpha * epsilon
 
             # Output positions and intensities of fireflies for debugging
-            if debug_out:
+            if verbose:
                 print("     j:[{:3}]({:+7.3f},{:+7.3f}) i:[{:3}]({:+7.3f},{:+7.3f})".format(
                     j, x[j], I(x[j]),
                     i, x[i], I(x[i]),
@@ -37,7 +37,7 @@ def algorithm(*,
                 
                 print('')
 
-        if debug_out:
+        if verbose:
             print('') 
 
     # Returns new positions of fireflies

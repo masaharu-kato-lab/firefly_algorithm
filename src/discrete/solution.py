@@ -62,7 +62,7 @@ def firefly_solution(*,
 
 		with open(output_filename, mode='a') as f:
 			if(prev_min_node != ffproc.min_node):
-				print('[{:>8}] {:>9} at {:>6} [{:}] ({:7.4f} sec)'.format(t, ffproc.min_Ix, ffproc.min_node, ','.join(map(str, ffproc.min_x)) , sum_elasped_time), file = f)
+				print('[{:>8}] {:>9} at {:>6} [{:}] ({:7.4f} sec)'.format(t, ffproc.getMinIx(), ffproc.getMinNode(), ','.join(map(str, ffproc.getMinX())) , sum_elasped_time), file = f)
 				sum_elasped_time = 0
 
 
