@@ -29,6 +29,7 @@ class Firefly:
         self.luminosity = 10000 * uncertainty + self.eta * distance
 
     # Build the paths from a list of points
+    # バッテリの関係でスタート地点に戻らなければならず, それを考慮して経路を決める
     def evaluate(self, _coords):
         coords = copy.copy(_coords)
         limit = 0
@@ -81,21 +82,27 @@ class Firefly:
         return uncertainty, battery, solution
 
 
+
+def flatten(a):
+    return [element for sublist in a for element in sublist]
+
+
+
 # Beta step: exploitation
 def betaStep(_A, _B, gamma): #move b to a
 
-    A = copy.copy(_A)
-    B = copy.copy(_B)
+    A = flatten(_A)
+    B = flatten(_B)
     C = [None] * len(A)
     remains = copy.copy(A)
     remain_indexes = list(range(len(A)))
     visited = {i:False for i in A}
 
-    for i, (a, b, c) in enumerate(A, B, C):
-        if a == b:
-            c = a
-            visited[a] = True
-            remains.remove(a)
+    for i in range(len(C)):
+        if A[i] == B[i]:
+            C[i] = A[i]
+            visited[C[i]] = True
+            remains.remove(C[i])
             remain_indexes.remove(i)
 
 
@@ -130,6 +137,7 @@ def betaStep(_A, _B, gamma): #move b to a
 
     for value in remains:
         C[C.index(None)] = value
+
 
     return C
 
@@ -167,7 +175,8 @@ def fireflyAlgorithm(z, args):
             for j in range(n):
                 if j != i:
                     if swarm[j].luminosity < swarm[i].luminosity:
-                        c = alphaStep([elm for sub in swarm[i].x for elm in sub], args.alpha)
+                        c = betaStep(swarm[j].x, swarm[i].x, args.gamma)
+                        c = alphaStep(flatten(swarm[i].x), args.alpha)
                         swarm[i].update(c)
 
         swarm = sorted(swarm, key = lambda ff: ff.luminosity)
