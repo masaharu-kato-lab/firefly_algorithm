@@ -1,7 +1,7 @@
 from pprint import pprint
 import numpy as np
 import random
-import algorithm
+import firefly
 import distance
 from datetime import datetime
 import time
@@ -12,7 +12,8 @@ def firefly_solution(*,
 	number : int,
 	gamma  : float,
 	alpha  : float,
-	tlen   : int
+	tlen   : int,
+	verbose : bool = False,
 	):
 
 	# Set seed value of random
@@ -22,11 +23,12 @@ def firefly_solution(*,
 	x = [0] * number
 	for i in range(len(x)): x[i] = np.random.permutation(nodes.names)
 
-	ffproc = algorithm.Firefly(
+	ffproc = firefly.Algorithm(
 		x = x,
 		nodes = nodes,
 		distance = distance.hamming,
-		I = lambda p : nodes.distance(p)
+		I = lambda p : nodes.distance(p),
+		verbose = verbose
 	)
 
 

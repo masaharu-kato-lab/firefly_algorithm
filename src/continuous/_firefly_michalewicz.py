@@ -1,4 +1,4 @@
-import algorithm
+import firefly
 import benchmarks
 import matplotlib.pyplot as plt
 import random
@@ -22,7 +22,7 @@ print(x)
 
 # Run firefly algorythm
 for t in range(100):
-	x = algorithm.firefly(
+	x = firefly.algorithm(
 		x = x,
 		distance = lambda p, q: np.linalg.norm(q - p),
 		I = I,

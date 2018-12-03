@@ -6,20 +6,20 @@ import itertools
 import objects
 
 # Firefly algorithm class
-class Firefly:
+class Algorithm:
 
     def __init__(self, *,
-        x           : dict ,         # Initial positions
-        nodes       : objects.Nodes, # Nodes Object
-        I           : callable,      # Objective Function (Originally means light intensity of fireflies)
-        distance    : callable,      # Distance Function (calcs distance between two positions)
-        debug_out   : bool = False,  # Whether to output information for debugging
+        x         : list ,         # Initial positions (list of list)
+        nodes     : objects.Nodes, # Nodes Object
+        I         : callable,      # Objective Function (Originally means light intensity of fireflies)
+        distance  : callable,      # Distance Function (calcs distance between two positions)
+        verbose   : bool = False,  # Whether to output details for debugging
     ):
         self.nodes = nodes
         self.I = I
         self.Ix = None
         self.distance = distance
-        self.debug_out = debug_out
+        self.verbose = verbose
         self.setX(x)
 
 
@@ -77,7 +77,7 @@ class Firefly:
 
 
         # Output processing time
-        if self.debug_out:
+        if self.verbose:
             print('beta: {:7.4f}sec, alpha: {:7.4f}sec, calc: {:>6} / {:>6}'.format(time_bs, time_as, count_calc, count_loop))
 
         self.setX(new_x)

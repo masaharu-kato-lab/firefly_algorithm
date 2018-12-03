@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 # Calc firefly algorithm once
-def firefly(*,
+def algorithm(*,
         x        : list,         # Initial positions of fireflies
         distance : callable,     # Function to calculate distance between two fireflies
         I        : callable,     # Objective Function (Originally means light intensity of fireflies)
