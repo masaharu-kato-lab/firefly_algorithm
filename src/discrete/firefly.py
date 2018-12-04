@@ -3,34 +3,32 @@ import numpy as np
 import copy
 import time
 import itertools
-import objects
 
 # Firefly algorithm class
-class Firefly:
+class Algorithm:
 
     def __init__(self, *,
-        x           : dict ,         # Initial positions
-        nodes       : objects.Nodes, # Nodes Object
-        I           : callable,      # Objective Function (Originally means light intensity of fireflies)
-        distance    : callable,      # Distance Function (calcs distance between two positions)
-        debug_out   : bool = False,  # Whether to output information for debugging
+        x         : list = None ,  # Initial fireflies's permutation (list of list)
+        nodes     : list ,         # List of node names
+        I         : callable,      # Objective Function (Originally means light intensity of fireflies)
+        distance  : callable,      # Distance Function (calcs distance between two positions)
+        verbose   : bool = False,  # Whether to output details for debugging
     ):
         self.nodes = nodes
+        self.indexes = list(range(len(nodes)))
         self.I = I
         self.Ix = None
         self.distance = distance
-        self.debug_out = debug_out
+        self.verbose = verbose
         self.setX(x)
 
 
-    # Set new positions
+    # Set new fireflies
     def setX(self, x):
         self.x = x
 
         self.Ix = list(map(self.I, self.x))
         self.min_node = np.argmin(self.Ix)
-        self.min_x  = self.x[self.min_node]
-        self.min_Ix = self.Ix[self.min_node]
         
 
     # Calc firefly algorithm once
@@ -58,40 +56,38 @@ class Firefly:
 
                     time1 = time.time()
 
-                    new_beta_x = self.beta_step(
-                        self.x[i],
-                        self.x[j],
-                        1 / (1 + gamma * self.distance(self.x[i], self.x[j]))
-                    )
+                    beta = 1 / (1 + gamma * self.distance(self.x[i], self.x[j]))
+                    new_beta_x = self.betaStep(self.x[i], self.x[j], beta)
 
                     time2 = time.time()
                     
-                    new_x[i] = self.alpha_step(new_beta_x, int(np.random.rand() * alpha + 1.0))
+                    new_x[i] = self.alphaStep(new_beta_x, int(np.random.rand() * alpha + 1.0))
 
                     time3 = time.time()
 
                     time_bs += time2 - time1
                     time_as += time3 - time2
 
-                    if(not self.is_valid(new_x[i])): raise RuntimeError('Invalid permutation.')
+                    if(not self.isValid(new_x[i])):
+                        raise RuntimeError('Invalid permutation.')
 
 
         # Output processing time
-        if self.debug_out:
+        if self.verbose:
             print('beta: {:7.4f}sec, alpha: {:7.4f}sec, calc: {:>6} / {:>6}'.format(time_bs, time_as, count_calc, count_loop))
 
         self.setX(new_x)
 
 
-
-    def beta_step(self, p1, p2, beta : float):
+    # Beta step (attract between p1 and p2 based on beta value)
+    def betaStep(self, p1, p2, beta : float):
 
         p12 = [None] * len(p1)
-        empty_nodes   = copy.copy(self.nodes.names)
-        empty_indexes = copy.copy(self.nodes.indexes)
+        empty_nodes   = copy.copy(self.nodes)
+        empty_indexes = copy.copy(self.indexes)
         
         # calc intersection of p1 and p2
-        for i in self.nodes.indexes: # DO NOT 'for i in empty_indexes'
+        for i in self.indexes: # DO NOT 'for i in empty_indexes'
             if(p1[i] == p2[i]):
                 p12[i] = p1[i]
                 empty_nodes.remove(p12[i])
@@ -123,14 +119,15 @@ class Firefly:
 
 
 
-    def alpha_step(self, p, alpha : int):
+    # Alpha step (randomly swap nodes in permutation based on alpha value)
+    def alphaStep(self, p, alpha : int):
 
         # print('alpha:{:}'.format(alpha))
 
         if(alpha <= 1): return p
 
         # alpha 個の index を shuffle する
-        target_indexes = np.random.choice(self.nodes.indexes, alpha)
+        target_indexes = np.random.choice(self.indexes, alpha)
         shuffled_target_indexes = np.random.permutation(target_indexes)
 
         # shuffle target indexes
@@ -143,8 +140,8 @@ class Firefly:
 
 
     # check validity
-    def is_valid(self, perm):
-        nodes = copy.copy(self.nodes.names)
+    def isValid(self, perm):
+        nodes = copy.copy(self.nodes)
         for p in perm:
             if(p in nodes):
                 nodes.remove(p)
@@ -155,4 +152,15 @@ class Firefly:
             return False
 
         return True
+
+
+
+    def getMinNode(self):
+        return self.min_node
+
+    def getMinX(self):
+        return self.x[self.min_node]
+
+    def getMinIx(self):
+        return self.Ix[self.min_node]
 
