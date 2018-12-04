@@ -1,10 +1,13 @@
 import tsp.file
 import tsp.distance
 import objects
-import solution
+import firefly
 import argparse
 import os
 from datetime import datetime
+import distance
+import random
+import numpy as np
 
 
 def print_to_file(content, filepath):
@@ -29,6 +32,12 @@ def main():
 	args = argp.parse_args()
 
 
+	# Set seed value of random
+	if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
+	np.random.seed(seed = args.seed)
+
+
+	# Set output function based on argument options
 	today = datetime.now()
 
 	if args.stdout:
@@ -40,26 +49,41 @@ def main():
 		print_func = lambda content : print_to_file(content, output_filename)
 
 
+	# Output basic information
 	print_func('Discrete Firefly Algorithm using TSP')
 	print_func(today.strftime("%Y/%m/%d %H:%M:%S"))
 	print_func('{}'.format(vars(args)))
 
-
+	# Load coordinates and nodes
 	(datalist, _) = tsp.file.load(args.file)
 
-	solution.firefly_solution(
-		nodes = objects.Nodes(
-			coords = datalist['NODE_COORD_SECTION'],
-			func_distance = tsp.distance.euclid
-		),
-		seed    = args.seed,
-		number  = args.number,
-		gamma   = args.gamma,
-		alpha   = args.alpha,
-		tlen    = args.tlen,
-		verbose = args.verbose,
-		print_func = print_func
+	nodes = objects.Nodes(
+		coords = datalist['NODE_COORD_SECTION'],
+		func_distance = tsp.distance.euclid
 	)
+
+
+	# Run firefly algorithm
+	for ret in firefly.run(
+		nodes    = nodes.names,
+		seed     = args.seed,
+		number   = args.number,
+		gamma    = lambda _ : args.gamma,
+		alpha    = lambda _ : args.alpha,
+		n_gen    = args.tlen,
+		I        = lambda p : nodes.distance(p),
+		distance = distance.hamming,
+	):
+		if(ret.prev_min_id != ret.min_id):
+			print_func('[{:>8}] {:>9} at {:>6} [{:}] ({:7.4f} sec)'.format(
+				ret.t,
+				ret.min_Ix,
+				ret.min_id,
+				','.join(map(str, ret.min_x)),
+				ret.elapsed_time
+			))
+
+	print_func('(END)')
 
 
 
