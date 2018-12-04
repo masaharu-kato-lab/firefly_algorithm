@@ -25,7 +25,6 @@ def run(*,
 
     Ix = list(map(I, x))
 
-    prev_min_id = None
     ret = attrdict.AttrDict()
 
     for t in range(n_gen):
@@ -58,7 +57,6 @@ def run(*,
         min_id = np.argmin(Ix)
 
         ret.t = t
-        ret.prev_min_id = prev_min_id
         ret.min_id = min_id
         ret.min_x  = x[min_id]
         ret.min_Ix = Ix[min_id]
@@ -66,8 +64,6 @@ def run(*,
         ret.elapsed_time = time.time() - start_time
 
         yield ret
-
-        prev_min_id = min_id
 
 
 
