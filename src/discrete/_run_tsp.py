@@ -1,22 +1,13 @@
 import tsp.file
 import tsp.distance
 import objects
-import solution
 import argparse
-import os
-from datetime import datetime
-
-
-def print_to_file(content, filepath):
-	with open(filepath, mode='a') as f:
-		print(content, file=f)
-
-def print_to_stdout(content):
-	print(content)
-
+import distance
+import output
 
 def main():
 
+	# Parse arguments
 	argp = argparse.ArgumentParser(description='Run firefly algorithm')
 	argp.add_argument('-s', '--seed'    , type=int  , default =None , help='Seed value of random')
 	argp.add_argument('-n', '--number'  , type=int  , required=True , help='Number of positions')
@@ -28,37 +19,20 @@ def main():
 	argp.add_argument(      '--stdout'  , action="store_true"       , help='Whether output results to stdout or not (output to automatically created file)')
 	args = argp.parse_args()
 
-
-	today = datetime.now()
-
-	if args.stdout:
-		print_func = print_to_stdout
-
-	else:
-		output_filename = 'out/{}/{}.txt'.format(today.strftime("%Y%m%d"), today.strftime("%H%M%S"))
-		os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-		print_func = lambda content : print_to_file(content, output_filename)
-
-
-	print_func('Discrete Firefly Algorithm using TSP')
-	print_func(today.strftime("%Y/%m/%d %H:%M:%S"))
-	print_func('{}'.format(vars(args)))
-
-
+	# Load coordinates and nodes
 	(datalist, _) = tsp.file.load(args.file)
 
-	solution.firefly_solution(
-		nodes = objects.Nodes(
-			coords = datalist['NODE_COORD_SECTION'],
-			func_distance = tsp.distance.euclid
-		),
-		seed    = args.seed,
-		number  = args.number,
-		gamma   = args.gamma,
-		alpha   = args.alpha,
-		tlen    = args.tlen,
-		verbose = args.verbose,
-		print_func = print_func
+	nodes = objects.Nodes(
+		coords = datalist['NODE_COORD_SECTION'],
+		func_distance = tsp.distance.euclid
+	)
+
+
+	return output.run(
+		args,
+		nodes    = nodes.names,
+		I        = lambda p : nodes.distance(p),
+		distance = distance.hamming
 	)
 
 

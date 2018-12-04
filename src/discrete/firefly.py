@@ -1,166 +1,141 @@
-import math
 import numpy as np
 import copy
 import time
-import itertools
+import attrdict
 
-# Firefly algorithm class
-class Algorithm:
+# Firefly algorithm calculation class
+def run(*,
+    x        : list = None,  # Initial fireflies's permutation (list of list)
+    number   : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
+    nodes    : list ,        # List of node names
+    I        : callable,     # Objective Function (Originally means light intensity of fireflies)
+    distance : callable,     # Distance Function (calcs distance between two positions)
+    gamma    : callable,     # Function returns gamma value using index of generation
+    alpha    : callable,     # Function returns alpha value using index of generation
+    n_gen    : int,          # Number of generation
+    seed     : int,          # Random seed
+):
 
-    def __init__(self, *,
-        x         : list = None ,  # Initial fireflies's permutation (list of list)
-        nodes     : list ,         # List of node names
-        I         : callable,      # Objective Function (Originally means light intensity of fireflies)
-        distance  : callable,      # Distance Function (calcs distance between two positions)
-        verbose   : bool = False,  # Whether to output details for debugging
-    ):
-        self.nodes = nodes
-        self.indexes = list(range(len(nodes)))
-        self.I = I
-        self.Ix = None
-        self.distance = distance
-        self.verbose = verbose
-        self.setX(x)
+    indexes = list(range(len(nodes)))
 
+    if x == None:
+        x = [0] * number
+        for i in range(len(x)):
+            x[i] = np.random.permutation(nodes)
 
-    # Set new fireflies
-    def setX(self, x):
-        self.x = x
+    Ix = list(map(I, x))
 
-        self.Ix = list(map(self.I, self.x))
-        self.min_node = np.argmin(self.Ix)
-        
+    ret = attrdict.AttrDict()
 
-    # Calc firefly algorithm once
-    def calcOnce(self, *, gamma: float, alpha: float):
-        
-        # New positions of fireflies
-        new_x = np.copy(self.x)
-        
-        time_bs = 0
-        time_as = 0
+    for t in range(n_gen):
 
-        count_loop = 0
-        count_calc = 0
+        start_time = time.time()
+
+        new_x = copy.copy(x) # List of new permutation of firefly
+        n_attracted = 0
+
+        c_gamma = gamma(t)
+        c_alpha = alpha(t)
 
         # Repeats for all combinations of fireflies
-        for i in range(len(self.x)):
+        for i in range(len(x)):
             for j in range(i):
-
-                count_loop += 1
                 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
-                if self.Ix[i] > self.Ix[j]:
+                if Ix[i] > Ix[j]:
+                    n_attracted += 1
 
-                    count_calc += 1
+                    beta = 1 / (1 + c_gamma * distance(x[i], x[j]))
+                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta)
+                    new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * c_alpha + 1.0))
 
-                    time1 = time.time()
-
-                    beta = 1 / (1 + gamma * self.distance(self.x[i], self.x[j]))
-                    new_beta_x = self.betaStep(self.x[i], self.x[j], beta)
-
-                    time2 = time.time()
-                    
-                    new_x[i] = self.alphaStep(new_beta_x, int(np.random.rand() * alpha + 1.0))
-
-                    time3 = time.time()
-
-                    time_bs += time2 - time1
-                    time_as += time3 - time2
-
-                    if(not self.isValid(new_x[i])):
+                    if(not isValid(new_x[i], nodes)):
                         raise RuntimeError('Invalid permutation.')
 
+        x = new_x
+        Ix = list(map(I, x))
+        min_id = np.argmin(Ix)
 
-        # Output processing time
-        if self.verbose:
-            print('beta: {:7.4f}sec, alpha: {:7.4f}sec, calc: {:>6} / {:>6}'.format(time_bs, time_as, count_calc, count_loop))
+        ret.t = t
+        ret.min_id = min_id
+        ret.min_x  = x[min_id]
+        ret.min_Ix = Ix[min_id]
+        ret.n_attracted = n_attracted
+        ret.elapsed_time = time.time() - start_time
 
-        self.setX(new_x)
-
-
-    # Beta step (attract between p1 and p2 based on beta value)
-    def betaStep(self, p1, p2, beta : float):
-
-        p12 = [None] * len(p1)
-        empty_nodes   = copy.copy(self.nodes)
-        empty_indexes = copy.copy(self.indexes)
-        
-        # calc intersection of p1 and p2
-        for i in self.indexes: # DO NOT 'for i in empty_indexes'
-            if(p1[i] == p2[i]):
-                p12[i] = p1[i]
-                empty_nodes.remove(p12[i])
-                empty_indexes.remove(i)
-
-
-        # fill empty indexes in p12
-        for i in empty_indexes:
-
-            # choose candidate node from p1's node or p2's based on beta value
-            candidate_node = p1[i] if(np.random.rand() > beta) else p2[i]
-
-            # fill with chosen candidate node if it doesn't already exist in p12
-            if(candidate_node in empty_nodes):
-                p12[i] = candidate_node
-                empty_nodes.remove(candidate_node)
-                empty_indexes.remove(i)
-
-
-        if(len(empty_nodes)):
-
-            # fill empty indexes randomly
-            shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
-            for i, p12_i in enumerate(empty_indexes):
-                p12[p12_i] = shuffled_empty_nodes[i]
-
-
-        return p12
+        yield ret
 
 
 
-    # Alpha step (randomly swap nodes in permutation based on alpha value)
-    def alphaStep(self, p, alpha : int):
+# Beta step (attract between perm1 and perm2 based on beta value)
+def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
 
-        # print('alpha:{:}'.format(alpha))
-
-        if(alpha <= 1): return p
-
-        # alpha 個の index を shuffle する
-        target_indexes = np.random.choice(self.indexes, alpha)
-        shuffled_target_indexes = np.random.permutation(target_indexes)
-
-        # shuffle target indexes
-        new_p = np.copy(p)
-        for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
-            new_p[shuffled_index] = p[index]
-
-        #print('a1:', new_p)
-        return new_p
+    perm12 = [None] * len(perm1)
+    empty_nodes   = copy.copy(nodes)
+    empty_indexes = copy.copy(indexes)
+    
+    # calc intersection of perm1 and perm2
+    for i in indexes: # DO NOT 'for i in empty_indexes'
+        if(perm1[i] == perm2[i]):
+            perm12[i] = perm1[i]
+            empty_nodes.remove(perm12[i])
+            empty_indexes.remove(i)
 
 
-    # check validity
-    def isValid(self, perm):
-        nodes = copy.copy(self.nodes)
-        for p in perm:
-            if(p in nodes):
-                nodes.remove(p)
-            else:
-                return False
+    # fill empty indexes in perm12
+    for i in empty_indexes:
 
-        if len(nodes):
+        # choose candidate node from perm1's node or perm2's based on beta value
+        candidate_node = perm1[i] if(np.random.rand() > beta) else perm2[i]
+
+        # fill with chosen candidate node if it doesn't already exist in perm12
+        if(candidate_node in empty_nodes):
+            perm12[i] = candidate_node
+            empty_nodes.remove(candidate_node)
+            empty_indexes.remove(i)
+
+
+    if(len(empty_nodes)):
+
+        # fill empty indexes randomly
+        shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+        for i, perm12_i in enumerate(empty_indexes):
+            perm12[perm12_i] = shuffled_empty_nodes[i]
+
+
+    return perm12
+
+
+
+# Alpha step (randomly swap nodes in permutation based on alpha value)
+def alphaStep(perm:list, indexes:list, alpha:int):
+
+    if(alpha <= 1): return perm
+
+    # alpha 個の index を shuffle する
+    target_indexes = np.random.choice(indexes, alpha)
+    shuffled_target_indexes = np.random.permutation(target_indexes)
+
+    # shuffle target indexes
+    new_perm = np.copy(perm)
+    for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
+        new_perm[shuffled_index] = perm[index]
+
+    #print('a1:', new_p)
+    return new_perm
+
+
+
+# check validity
+def isValid(perm:list, nodes:list):
+    nodes = copy.copy(nodes)
+    for p in perm:
+        if(p in nodes):
+            nodes.remove(p)
+        else:
             return False
 
-        return True
+    if len(nodes):
+        return False
 
-
-
-    def getMinNode(self):
-        return self.min_node
-
-    def getMinX(self):
-        return self.x[self.min_node]
-
-    def getMinIx(self):
-        return self.Ix[self.min_node]
-
+    return True
