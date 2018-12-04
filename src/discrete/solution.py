@@ -25,7 +25,7 @@ def firefly_solution(*,
 
 	ffproc = firefly.Algorithm(
 		x = x,
-		nodes = nodes,
+		nodes = nodes.names,
 		distance = distance.hamming,
 		I = lambda p : nodes.distance(p),
 		verbose = verbose

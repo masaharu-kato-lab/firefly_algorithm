@@ -3,19 +3,19 @@ import numpy as np
 import copy
 import time
 import itertools
-import objects
 
 # Firefly algorithm class
 class Algorithm:
 
     def __init__(self, *,
-        x         : list ,         # Initial fireflies's permutation (list of list)
-        nodes     : objects.Nodes, # Nodes Object
+        x         : list = None ,  # Initial fireflies's permutation (list of list)
+        nodes     : list ,         # List of node names
         I         : callable,      # Objective Function (Originally means light intensity of fireflies)
         distance  : callable,      # Distance Function (calcs distance between two positions)
         verbose   : bool = False,  # Whether to output details for debugging
     ):
         self.nodes = nodes
+        self.indexes = list(range(len(nodes)))
         self.I = I
         self.Ix = None
         self.distance = distance
@@ -83,11 +83,11 @@ class Algorithm:
     def betaStep(self, p1, p2, beta : float):
 
         p12 = [None] * len(p1)
-        empty_nodes   = copy.copy(self.nodes.names)
-        empty_indexes = copy.copy(self.nodes.indexes)
+        empty_nodes   = copy.copy(self.nodes)
+        empty_indexes = copy.copy(self.indexes)
         
         # calc intersection of p1 and p2
-        for i in self.nodes.indexes: # DO NOT 'for i in empty_indexes'
+        for i in self.indexes: # DO NOT 'for i in empty_indexes'
             if(p1[i] == p2[i]):
                 p12[i] = p1[i]
                 empty_nodes.remove(p12[i])
@@ -127,7 +127,7 @@ class Algorithm:
         if(alpha <= 1): return p
 
         # alpha 個の index を shuffle する
-        target_indexes = np.random.choice(self.nodes.indexes, alpha)
+        target_indexes = np.random.choice(self.indexes, alpha)
         shuffled_target_indexes = np.random.permutation(target_indexes)
 
         # shuffle target indexes
@@ -141,7 +141,7 @@ class Algorithm:
 
     # check validity
     def isValid(self, perm):
-        nodes = copy.copy(self.nodes.names)
+        nodes = copy.copy(self.nodes)
         for p in perm:
             if(p in nodes):
                 nodes.remove(p)

@@ -7,13 +7,13 @@ import argparse
 def main():
 
 	argp = argparse.ArgumentParser(description='Run firefly algorithm')
-	argp.add_argument('-s', '--seed'    , type=int  , default= 1234, help='Seed value of random')
-	argp.add_argument('-n', '--number'  , type=int  , default=   50, help='Number of positions')
-	argp.add_argument('-g', '--gamma'   , type=float, default=  0.1, help='Gamma value')
-	argp.add_argument('-a', '--alpha'   , type=float, default=  2.0, help='Alpha value')
-	argp.add_argument('-t', '--tlen'    , type=int  , default=  100, help='Number of calculation')
-	argp.add_argument('-f', '--file'    , type=str  , default='res/oliver30.tsp', help='File path to .tsp file')
-	argp.add_argument('-v', '--verbose' , type=bool , default=False, help='Whether to output details for debugging')
+	argp.add_argument('-s', '--seed'    , type=int  , default =None , help='Seed value of random')
+	argp.add_argument('-n', '--number'  , type=int  , required=True , help='Number of positions')
+	argp.add_argument('-g', '--gamma'   , type=float, required=True , help='Gamma value')
+	argp.add_argument('-a', '--alpha'   , type=float, required=True , help='Alpha value')
+	argp.add_argument('-t', '--tlen'    , type=int  , required=True , help='Number of calculation')
+	argp.add_argument('-f', '--file'    , type=str  , required=True , help='File path to .tsp file')
+	argp.add_argument('-v', '--verbose' , type=bool , default =False, help='Whether to output details for debugging')
 	args = argp.parse_args()
 
 	(datalist, _) = tsp.file.load(args.file)

@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "src/discrete/_run_tsp.py",
+            "program": "${workspaceFolder}/src/discrete/_run_tsp.py",
+            "args": [
+                "--number", "50",
+                "--gamma" , "0.1",
+                "--alpha" , "2.0",
+                "--tlen"  , "100",
+                "--file"  , "res/oliver30.tsp"
+            ],
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",
