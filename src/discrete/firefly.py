@@ -113,11 +113,12 @@ def alphaStep(perm:list, indexes:list, alpha:int):
     if(alpha <= 1): return perm
 
     # alpha 個の index を shuffle する
-    target_indexes = np.random.choice(indexes, alpha)
+    # set option 'replace=False' to avoid overlaps
+    target_indexes = np.random.choice(indexes, alpha, replace=False)
     shuffled_target_indexes = np.random.permutation(target_indexes)
 
     # shuffle target indexes
-    new_perm = np.copy(perm)
+    new_perm = copy.copy(perm)
     for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
         new_perm[shuffled_index] = perm[index]
 
@@ -128,13 +129,17 @@ def alphaStep(perm:list, indexes:list, alpha:int):
 
 # check validity
 def isValid(perm:list, nodes:list):
+
     nodes = copy.copy(nodes)
-    for p in perm:
-        if(p in nodes):
-            nodes.remove(p)
+
+    for node in perm:
+        # check if node is in nodes and not used yet
+        if(node in nodes):
+            nodes.remove(node)
         else:
             return False
 
+    # check if there are unuse nodes
     if len(nodes):
         return False
 
