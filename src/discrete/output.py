@@ -38,7 +38,7 @@ def run(args:object, *,
 
 
     # Output basic information
-    print_func('Discrete Firefly Algorithm using TSP')
+    print_func('Discrete Firefly Algorithm')
     print_func(today.strftime("%Y/%m/%d %H:%M:%S"))
     print_func('{}'.format(vars(args)))
 
@@ -59,7 +59,7 @@ def run(args:object, *,
         distance      = distance,
     ):
         if(prev_min_id != ret.min_id):
-            print_func('[{:>6}] {:>6} at {:>4} [{:}] ({:8.4f} sec) na={:}'.format(
+            print_func('[{:>6}] {:12.4f} at {:>4} [{:}] ({:8.4f} sec) na={:}'.format(
                 ret.t,
                 ret.min_Ix,
                 ret.min_id,

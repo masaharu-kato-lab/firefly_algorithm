@@ -12,6 +12,7 @@ def main():
     argp.add_argument('-n', '--number'  , type=int  , required=True , help='Number of positions')
     argp.add_argument('-g', '--gamma'   , type=float, required=True , help='Gamma value (beta-step coefficient)')
     argp.add_argument('-a', '--alpha'   , type=float, required=True , help='Alpha value (alpha-step coefficient)')
+    argp.add_argument('-ba', '--blocked_alpha', type=float, default =None , help='Alpha value on fireflies are blocked (Default for do nothing)')
     argp.add_argument('-e', '--eta'     , type=float, required=True , help='Eta value (distance penalization coefficient)')
     argp.add_argument('-t', '--tlen'    , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d', '--n_drones', type=int  , required=True , help='Number of drones')
