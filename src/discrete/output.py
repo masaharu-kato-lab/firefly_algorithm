@@ -58,7 +58,7 @@ def run(args:object, *,
         distance = distance,
     ):
         if(prev_min_id != ret.min_id):
-            print_func('[{:>6}] {:>6} at {:>4} [{:}] ({:8.4f} sec)'.format(
+            print_func('[{:>6}] {:12.4f} at {:>4} [{:}] ({:8.4f} sec)'.format(
                 ret.t,
                 ret.min_Ix,
                 ret.min_id,

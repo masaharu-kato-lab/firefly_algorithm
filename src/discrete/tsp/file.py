@@ -36,7 +36,7 @@ def node_coord_section(file, options):
     coords = dict()
 
     for _ in range(length):
-        v = file.readline().rstrip('\r\n').split(' ')
+        v = file.readline().rstrip('\r\n').split()
         coords[int(v[0].strip())] = np.array(list(map(float, v[1:])))
 
     return coords
