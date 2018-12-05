@@ -48,22 +48,24 @@ def run(args:object, *,
 
     # Run firefly algorithm
     for ret in firefly.run(
-        nodes    = nodes,
-        seed     = args.seed,
-        number   = args.number,
-        gamma    = lambda _ : args.gamma,
-        alpha    = lambda _ : args.alpha,
-        n_gen    = args.tlen,
-        I        = I,
-        distance = distance,
+        nodes         = nodes,
+        seed          = args.seed,
+        number        = args.number,
+        gamma         = args.gamma,
+        alpha         = args.alpha,
+        blocked_alpha = args.blocked_alpha,
+        n_gen         = args.tlen,
+        I             = I,
+        distance      = distance,
     ):
         if(prev_min_id != ret.min_id):
-            print_func('[{:>6}] {:12.4f} at {:>4} [{:}] ({:8.4f} sec)'.format(
+            print_func('[{:>6}] {:>6} at {:>4} [{:}] ({:8.4f} sec) na={:}'.format(
                 ret.t,
                 ret.min_Ix,
                 ret.min_id,
                 ','.join(map(str, ret.min_x)),
-                current_elasped_time
+                current_elasped_time,
+                ret.n_attracted
             ))
             current_elasped_time = 0
 
