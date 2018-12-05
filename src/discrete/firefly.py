@@ -5,15 +5,16 @@ import attrdict
 
 # Firefly algorithm calculation class
 def run(*,
-    x        : list = None,  # Initial fireflies's permutation (list of list)
-    number   : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
-    nodes    : list ,        # List of node names
-    I        : callable,     # Objective Function (Originally means light intensity of fireflies)
-    distance : callable,     # Distance Function (calcs distance between two positions)
-    gamma    : callable,     # Function returns gamma value using index of generation
-    alpha    : callable,     # Function returns alpha value using index of generation
-    n_gen    : int,          # Number of generation
-    seed     : int,          # Random seed
+    x             : list = None,  # Initial fireflies's permutation (list of list)
+    number        : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
+    nodes         : list ,        # List of node names
+    I             : callable,     # Objective Function (Originally means light intensity of fireflies)
+    distance      : callable,     # Distance Function (calcs distance between two positions)
+    gamma         : float,        # gamma value
+    alpha         : float,        # alpha value
+    blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
+    n_gen         : int,          # Number of generation
+    seed          : int,          # Random seed
 ):
 
     indexes = list(range(len(nodes)))
@@ -34,9 +35,6 @@ def run(*,
         new_x = copy.copy(x) # List of new permutation of firefly
         n_attracted = 0
 
-        c_gamma = gamma(t)
-        c_alpha = alpha(t)
-
         # Repeats for all combinations of fireflies
         for i in range(len(x)):
             for j in range(i):
@@ -45,12 +43,19 @@ def run(*,
                 if Ix[i] > Ix[j]:
                     n_attracted += 1
 
-                    beta = 1 / (1 + c_gamma * distance(x[i], x[j]))
+                    beta = 1 / (1 + gamma * distance(x[i], x[j]))
                     new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta)
-                    new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * c_alpha + 1.0))
+                    new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
 
                     if(not isValid(new_x[i], nodes)):
                         raise RuntimeError('Invalid permutation.')
+
+
+        if n_attracted == 0 and blocked_alpha != None:
+            for i in range(len(x)):
+                new_x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
+                if(not isValid(new_x[i], nodes)):
+                    raise RuntimeError('Invalid permutation.')
 
         x = new_x
         Ix = list(map(I, x))
