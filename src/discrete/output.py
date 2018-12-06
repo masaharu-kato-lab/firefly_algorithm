@@ -43,8 +43,10 @@ def run(args:object, *,
     print_func('{}'.format(vars(args)))
 
 
-    prev_min_id = None
     current_elasped_time = 0
+    prev_min_x = np.array([None] * len(nodes))
+    prev_min_Ix = float('inf')
+    best_min_Ix = float('inf')
 
     # Run firefly algorithm
     for ret in firefly.run(
@@ -58,18 +60,23 @@ def run(args:object, *,
         I             = I,
         distance      = distance,
     ):
-        if(prev_min_id != ret.min_id):
-            print_func('[{:>6}] {:12.4f} at {:>4} [{:}] ({:8.4f} sec) na={:}'.format(
+        if not np.array_equal(prev_min_x, ret.min_x):
+            
+            print_func('[{:>6}] {} {}{:12.4f} at [{}] ({:8.4f} sec)'.format(
                 ret.t,
+                'v' if prev_min_Ix > ret.min_Ix else ' ' if prev_min_Ix < ret.min_Ix else '=',
+                '*' if best_min_Ix > ret.min_Ix else ' ',
                 ret.min_Ix,
-                ret.min_id,
-                ','.join(map(str, ret.min_x)),
-                current_elasped_time,
-                ret.n_attracted
+                ' '.join(map(lambda x : '{:>2}'.format(x), ret.min_x)),
+                current_elasped_time
             ))
             current_elasped_time = 0
 
-        prev_min_id = ret.min_id
+            if best_min_Ix > ret.min_Ix:
+                best_min_Ix = ret.min_Ix
+
+        prev_min_x = ret.min_x
+        prev_min_Ix = ret.min_Ix
         current_elasped_time += ret.elapsed_time
 
     print_func('(END)')

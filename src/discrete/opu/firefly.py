@@ -2,7 +2,6 @@ import copy
 import math
 import random
 import pickle
-import map_converter # Using inside mapper.pickle
 
 with open("res/mapper.pickle", "rb") as f:
     mapper = pickle.load(f)
