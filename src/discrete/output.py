@@ -17,7 +17,8 @@ def print_to_stdout(content):
 def run(args:object, *,
     nodes    : list,
     I        : callable,
-    distance : callable
+    distance : callable,
+    x        : list = None,
 ):
 
     # Set seed value of random
@@ -42,6 +43,9 @@ def run(args:object, *,
     print_func(today.strftime("%Y/%m/%d %H:%M:%S"))
     print_func('{}'.format(vars(args)))
 
+    for cx in x:
+        print_func('{:12.4f} at [{}]'.format(I(cx), ' '.join(map(lambda _x : '{:>2}'.format(_x), cx))))
+
 
     current_elasped_time = 0
     prev_min_x = np.array([None] * len(nodes))
@@ -53,6 +57,7 @@ def run(args:object, *,
         nodes         = nodes,
         seed          = args.seed,
         number        = args.number,
+        x             = x,
         gamma         = args.gamma,
         alpha         = args.alpha,
         blocked_alpha = args.blocked_alpha,
