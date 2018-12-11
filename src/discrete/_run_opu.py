@@ -24,7 +24,9 @@ def main():
     argp.add_argument('-e' , '--eta'          , type=float, required=True , help='Eta value (distance penalization coefficient)')
     argp.add_argument('-t' , '--tlen'         , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d' , '--n_drones'     , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
+    argp.add_argument('-i' , '--init'         , type=str  , default ="nn" , help='Initialization method (\'random\' or \'nn\' (nearest_naver))') 
     argp.add_argument(       '--verbose'      , action="store_true"       , help='Whether to output details for debugging')
+    argp.add_argument(       '--unsafe'       , action="store_true"       , help='Whether to check validation of permutation on each iteration')
     argp.add_argument(       '--stdout'       , action="store_true"       , help='Whether output results to stdout or not (output to automatically created file)')
     args = argp.parse_args()
 
@@ -44,11 +46,22 @@ def main():
     np.random.seed(seed = args.init_seed)
 
 
+    init_dist = lambda perm : opu.firefly.distance([tuple(coords[p]) for p in perm])
     I = lambda perm : opu.firefly.luminosity([tuple(coords[p]) for p in perm], n_drones = args.n_drones, eta = args.eta)
     x = [0] * args.number
 
+
+
+    if(args.init == 'random'):
+        init_method = lambda nodes : np.random.permutation(nodes)
+    elif(args.init == 'nn'):
+        init_method = lambda nodes : init.nearest_naver(nodes, init_dist)
+    else:
+        raise RuntimeError('Invalid name of initialization method.')
+
+
     for i in range(len(x)):
-        x[i] = init.nearest_naver(nodes, I)
+        x[i] = init_method(nodes)
 
 
     return output.run(

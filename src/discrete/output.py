@@ -43,8 +43,9 @@ def run(args:object, *,
     print_func(today.strftime("%Y/%m/%d %H:%M:%S"))
     print_func('{}'.format(vars(args)))
 
-    for cx in x:
-        print_func('{:12.4f} at [{}]'.format(I(cx), ' '.join(map(lambda _x : '{:>2}'.format(_x), cx))))
+
+    for i, cx in enumerate(x):
+        print_func('{:>3}: {:12.4f} at [{}]'.format(i, I(cx), ' '.join(map(lambda _x : '{:>2}'.format(_x), cx))))
 
 
     current_elasped_time = 0
@@ -69,8 +70,8 @@ def run(args:object, *,
             
             print_func('[{:>6}] {} {}{:12.4f} at [{}] ({:8.4f} sec)'.format(
                 ret.t,
-                'v' if prev_min_Ix > ret.min_Ix else ' ' if prev_min_Ix < ret.min_Ix else '=',
-                '*' if best_min_Ix > ret.min_Ix else ' ',
+                'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
+                '*' if best_min_Ix > ret.min_Ix else '.',
                 ret.min_Ix,
                 ' '.join(map(lambda x : '{:>2}'.format(x), ret.min_x)),
                 current_elasped_time

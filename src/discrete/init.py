@@ -1,7 +1,8 @@
 import numpy as np
 import copy
+import permutation
 
-def nearest_naver(nodes : list, dist : callable, *, n_random = 1):
+def nearest_naver(nodes : list, dist : callable, n_random = 1):
     perm = []
     remain_nodes = copy.copy(nodes)
 
@@ -16,4 +17,10 @@ def nearest_naver(nodes : list, dist : callable, *, n_random = 1):
         perm.append(remain_nodes[min_id])
         remain_nodes.pop(min_id)
 
+    
+
+    if(not permutation.isValid(perm, nodes)):
+        raise RuntimeError('Invalid permutation.')
+
     return perm
+

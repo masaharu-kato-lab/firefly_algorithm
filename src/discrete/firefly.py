@@ -2,6 +2,7 @@ import numpy as np
 import copy
 import time
 import attrdict
+import permutation
 
 # Firefly algorithm calculation class
 def run(*,
@@ -15,6 +16,7 @@ def run(*,
     blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
     n_gen         : int,          # Number of generation
     seed          : int,          # Random seed
+    unsafe        : bool = False  # Whether to check validation of permutation on each iteration
 ):
 
     indexes = list(range(len(nodes)))
@@ -47,19 +49,19 @@ def run(*,
                     new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta)
                     new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
 
-                    if(not isValid(new_x[i], nodes)):
+                    if(not unsafe and not permutation.isValid(new_x[i], nodes)):
                         raise RuntimeError('Invalid permutation.')
-
-
-        if n_attracted == 0 and blocked_alpha != None:
-            for i in range(len(x)):
-                new_x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
-                if(not isValid(new_x[i], nodes)):
-                    raise RuntimeError('Invalid permutation.')
 
         x = new_x
         Ix = list(map(I, x))
         min_id = np.argmin(Ix)
+
+        if n_attracted == 0 and blocked_alpha != None:
+            for i in range(len(x)):
+                if(i != min_id):
+                    new_x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
+                    if(not unsafe and not permutation.isValid(new_x[i], nodes)):
+                        raise RuntimeError('Invalid permutation.')
 
         ret.t = t
         ret.min_id = min_id
@@ -130,22 +132,3 @@ def alphaStep(perm:list, indexes:list, alpha:int):
     #print('a1:', new_p)
     return new_perm
 
-
-
-# check validity
-def isValid(perm:list, nodes:list):
-
-    nodes = copy.copy(nodes)
-
-    for node in perm:
-        # check if node is in nodes and not used yet
-        if(node in nodes):
-            nodes.remove(node)
-        else:
-            return False
-
-    # check if there are unuse nodes
-    if len(nodes):
-        return False
-
-    return True

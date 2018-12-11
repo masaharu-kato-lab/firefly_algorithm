@@ -110,3 +110,6 @@ venv.bak/
 # output folders and files
 out/
 nohup.out
+
+# secret folders and files
+notes/

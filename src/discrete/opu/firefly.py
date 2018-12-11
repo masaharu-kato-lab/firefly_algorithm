@@ -62,3 +62,14 @@ def luminosity(_coords, *, n_drones, eta):
 
     return luminosity
 
+
+
+# Calc distance of coords
+def distance(coords):
+
+    distance = 0
+    for i in range(len(coords)-1):
+        distance += mapper.paths[(coords[i], coords[i+1])][1]
+
+    return distance
+
