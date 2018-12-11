@@ -27,7 +27,7 @@ def main():
     argp.add_argument('-i' , '--init'         , type=str  , default ='nn' , help='Initialization method (\'random\' or \'nn\' (nearest_naver))') 
     argp.add_argument(       '--verbose'      , action='store_true'       , help='Whether to output details for debugging')
     argp.add_argument(       '--unsafe'       , action='store_true'       , help='Whether to check validation of permutation on each iteration')
-    argp.add_argument('-ns', '--nosort'       , action='store_false'      , help='Whether to sort fireflies on each iteration (default:yes')
+    argp.add_argument('-ns', '--nosort'       , action='store_true'       , help='Whether not to sort fireflies on each iteration')
     argp.add_argument(       '--stdout'       , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
     args = argp.parse_args()
 
