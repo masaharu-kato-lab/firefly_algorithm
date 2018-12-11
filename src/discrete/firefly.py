@@ -17,7 +17,8 @@ def run(*,
     n_gen         : int,          # Number of generation
     seed          : int,          # Random seed
     unsafe        : bool = False, # Whether to check validation of permutation on each iteration
-    sorting       : bool = True   # Whether to sort fireflies on each iteration
+    sorting       : bool = True,  # Whether to sort fireflies on each iteration
+    fill_norandom : bool = True   # Fill empty elements in permutation not randomly
 ):
 
     indexes = list(range(len(nodes)))
@@ -52,7 +53,7 @@ def run(*,
                     n_attracted += 1
 
                     beta = 1 / (1 + gamma * distance(x[i], x[j]))
-                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta)
+                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta, fill_norandom)
                     new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
 
                     if(not unsafe and not permutation.isValid(new_x[i], nodes)):
@@ -81,7 +82,7 @@ def run(*,
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)
-def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
+def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float, fill_norandom:bool):
 
     perm12 = [None] * len(perm1)
     empty_nodes   = copy.copy(nodes)
@@ -110,10 +111,16 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
 
     if(len(empty_nodes)):
 
-        # fill empty indexes randomly
-        shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
-        for i, perm12_i in enumerate(empty_indexes):
-            perm12[perm12_i] = shuffled_empty_nodes[i]
+        if fill_norandom:
+            # fill empty indexes reversely
+            for perm12_i in empty_indexes:
+                perm12[perm12_i] = empty_nodes.pop()
+
+        else:
+            # fill empty indexes randomly
+            shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+            for i, perm12_i in enumerate(empty_indexes):
+                perm12[perm12_i] = shuffled_empty_nodes[i]
 
 
     return perm12

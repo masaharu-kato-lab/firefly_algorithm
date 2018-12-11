@@ -15,20 +15,21 @@ def main():
 
     # Parse arguments
     argp = argparse.ArgumentParser(description='Run OPU firefly algorithm')
-    argp.add_argument('-s' , '--seed'         , type=int  , default =None , help='Seed value for random in calculation')
-    argp.add_argument('-is', '--init_seed'    , type=int  , default =None , help='Seed value for random in initialization')
-    argp.add_argument('-n' , '--number'       , type=int  , required=True , help='Number of positions')
-    argp.add_argument('-g' , '--gamma'        , type=float, required=True , help='Gamma value (beta-step coefficient)')
-    argp.add_argument('-a' , '--alpha'        , type=float, required=True , help='Alpha value (alpha-step coefficient)')
-    argp.add_argument('-ba', '--blocked_alpha', type=float, default =None , help='Alpha value on fireflies are blocked (Default for do nothing)')
-    argp.add_argument('-e' , '--eta'          , type=float, required=True , help='Eta value (distance penalization coefficient)')
-    argp.add_argument('-t' , '--tlen'         , type=int  , required=True , help='Number of calculation')
-    argp.add_argument('-d' , '--n_drones'     , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
-    argp.add_argument('-i' , '--init'         , type=str  , default ='nn' , help='Initialization method (\'random\' or \'nn\' (nearest_naver))') 
-    argp.add_argument(       '--verbose'      , action='store_true'       , help='Whether to output details for debugging')
-    argp.add_argument(       '--unsafe'       , action='store_true'       , help='Whether to check validation of permutation on each iteration')
-    argp.add_argument('-ns', '--nosort'       , action='store_true'       , help='Whether not to sort fireflies on each iteration')
-    argp.add_argument(       '--stdout'       , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
+    argp.add_argument('-s'  , '--seed'         , type=int  , default =None , help='Seed value for random in calculation')
+    argp.add_argument('-is' , '--init_seed'    , type=int  , default =None , help='Seed value for random in initialization')
+    argp.add_argument('-n'  , '--number'       , type=int  , required=True , help='Number of positions')
+    argp.add_argument('-g'  , '--gamma'        , type=float, required=True , help='Gamma value (beta-step coefficient)')
+    argp.add_argument('-a'  , '--alpha'        , type=float, required=True , help='Alpha value (alpha-step coefficient)')
+    argp.add_argument('-ba' , '--blocked_alpha', type=float, default =None , help='Alpha value on fireflies are blocked (Default for do nothing)')
+    argp.add_argument('-e'  , '--eta'          , type=float, required=True , help='Eta value (distance penalization coefficient)')
+    argp.add_argument('-t'  , '--tlen'         , type=int  , required=True , help='Number of calculation')
+    argp.add_argument('-d'  , '--n_drones'     , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
+    argp.add_argument('-i'  , '--init'         , type=str  , default ='nn' , help='Initialization method (\'random\' or \'nn\' (nearest neighbor))') 
+    argp.add_argument(        '--verbose'      , action='store_true'       , help='Whether to output details for debugging')
+    argp.add_argument(        '--unsafe'       , action='store_true'       , help='Whether to check validation of permutation on each iteration')
+    argp.add_argument('-ns' , '--nosort'       , action='store_true'       , help='Whether not to sort fireflies on each iteration')
+    argp.add_argument('-fnr', '--fill_norandom', action='store_true'       , help='Fill empty elements in permutation not randomly')
+    argp.add_argument(        '--stdout'       , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
     args = argp.parse_args()
 
     # Load coordinates and nodes
@@ -56,7 +57,7 @@ def main():
     if(args.init == 'random'):
         init_method = lambda nodes : np.random.permutation(nodes)
     elif(args.init == 'nn'):
-        init_method = lambda nodes : init.nearest_naver(nodes, init_dist)
+        init_method = lambda nodes : init.nearest_neighbor(nodes, init_dist)
     else:
         raise RuntimeError('Invalid name of initialization method.')
 

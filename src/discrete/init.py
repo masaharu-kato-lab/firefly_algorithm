@@ -2,7 +2,7 @@ import numpy as np
 import copy
 import permutation
 
-def nearest_naver(nodes : list, dist : callable, n_random = 1):
+def nearest_neighbor(nodes : list, dist : callable, n_random = 1):
     perm = []
     remain_nodes = copy.copy(nodes)
 
