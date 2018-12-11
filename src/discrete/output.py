@@ -65,6 +65,8 @@ def run(args:object, *,
         n_gen         = args.tlen,
         I             = I,
         distance      = distance,
+        unsafe        = args.unsafe,
+        sorting       = not args.nosort,
     ):
         if not np.array_equal(prev_min_x, ret.min_x):
             

@@ -16,7 +16,8 @@ def run(*,
     blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
     n_gen         : int,          # Number of generation
     seed          : int,          # Random seed
-    unsafe        : bool = False  # Whether to check validation of permutation on each iteration
+    unsafe        : bool = False, # Whether to check validation of permutation on each iteration
+    sorting       : bool = True   # Whether to sort fireflies on each iteration
 ):
 
     indexes = list(range(len(nodes)))
@@ -34,8 +35,13 @@ def run(*,
 
         start_time = time.time()
 
-        new_x = copy.copy(x) # List of new permutation of firefly
         n_attracted = 0
+
+        if sorting:
+            sorted_id = np.argsort(Ix)
+            new_x = [x[i] for i in sorted_id]
+        else:
+            new_x = copy.copy(x)
 
         # Repeats for all combinations of fireflies
         for i in range(len(x)):
