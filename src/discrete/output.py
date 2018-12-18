@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import os
+import sys
 from datetime import datetime
 import firefly
 
@@ -8,19 +9,15 @@ import firefly
 def current_time_text():
     return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 
-def print_to_file(content, filepath, *, date=False):
+def print_to_file(*args, filepath : str, datetime : bool = False):
     with open(filepath, mode='a') as f:
-        if date:
-            print('{}\t{}'.format(current_time_text(), content), file=f)
-        else:
-            print(content, file=f)
+        for arg in args: print(arg, file=f)
+        if datetime: print('@' + current_time_text(), file=f)
 
 
-def print_to_stdout(content, *, date=False):
-    if date:
-        print('{}\t{}'.format(current_time_text(), content))
-    else:
-        print(content)
+def print_to_stdout(*args, datetime : bool = False):
+    for arg in args: print(arg)
+    if datetime: print('@' + current_time_text())
 
 
 
@@ -35,83 +32,97 @@ def run(args:object, *,
     format_output_filename : str,
 ):
 
-
-    # Set seed value of random
-    if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
-    np.random.seed(seed = args.seed)
-
-
     # Set output function based on argument options
     today = datetime.now()
 
     if args.stdout:
-        print_func = print_to_stdout
+        print_to_log = print_to_stdout
 
     else:
-        output_filename = format_output_filename.format(
+        output_filepath = format_output_filename.format(
             date = today.strftime("%Y%m%d"),
             time = today.strftime("%H%M%S"),
             datetime = current_time_text(),
         )
-        os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-        print_func = lambda content, *, date=False : print_to_file(content, output_filename, date=date)
+        os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
+        print_to_log = lambda *args, datetime = False: print_to_file(*args, filepath = output_filepath, datetime = datetime)
 
 
     # Output basic information
-    print_func('#Program\tDiscrete Firefly Algorithm')
-    print_func('', date=True)
-    print_func('#Args\t{}'.format(vars(args)))
+    print_to_log(
+        '#Program\tDiscrete Firefly Algorithm',
+        '#Args\t{}'.format(vars(args))
+    )
 
-    print_func('#Initialization')
+    print_to_log('#Initialization', datetime=True)
 
     for i, cx in enumerate(x):
-        print_func(format_init.format(
+        print_to_log(format_init.format(
             i = i,
             Ix = I(cx),
             x = ' '.join(map(lambda _x : format_x.format(x=_x), cx))
         ))
 
-    
-    current_elasped_time = 0
-    prev_min_x = np.array([None] * len(nodes))
-    prev_min_Ix = float('inf')
-    best_min_Ix = float('inf')
+    print_to_log('#END', datetime=True)
 
-    print_func('#Iterations')
 
-    # Run firefly algorithm
-    for ret in firefly.run(
-        nodes         = nodes,
-        seed          = args.seed,
-        number        = args.number,
-        x             = x,
-        gamma         = args.gamma,
-        alpha         = args.alpha,
-        blocked_alpha = args.blocked_alpha,
-        n_gen         = args.tlen,
-        I             = I,
-        distance      = distance,
-        unsafe        = args.unsafe,
-        sorting       = not args.nosort,
-        fill_norandom = args.fill_norandom,
-    ):
-        if not np.array_equal(prev_min_x, ret.min_x):
-            
-            print_func(format_calc.format(
-                t         = ret.t,
-                diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
-                is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
-                Ix        = ret.min_Ix,
-                x         = ' '.join(map(lambda x : format_x.format(x = x), ret.min_x)),
-                time      = current_elasped_time
-            ), date=True)
-            current_elasped_time = 0
+    if not args.init_only:
 
-            if best_min_Ix > ret.min_Ix:
-                best_min_Ix = ret.min_Ix
+        # Set seed value of random
+        if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
+        np.random.seed(seed = args.seed)
+        
+        
+        current_elasped_time = 0
+        prev_min_x = np.array([None] * len(nodes))
+        prev_min_Ix = float('inf')
+        best_min_Ix = float('inf')
 
-        prev_min_x = ret.min_x
-        prev_min_Ix = ret.min_Ix
-        current_elasped_time += ret.elapsed_time
+        print_to_log('#Iterations', datetime=True)
 
-    print_func('(END)', date=True)
+        # Run firefly algorithm
+        for ret in firefly.run(
+            nodes         = nodes,
+            seed          = args.seed,
+            number        = args.number,
+            x             = x,
+            gamma         = args.gamma,
+            alpha         = args.alpha,
+            blocked_alpha = args.blocked_alpha,
+            n_gen         = args.tlen,
+            I             = I,
+            distance      = distance,
+            unsafe        = args.unsafe,
+            sorting       = not args.nosort,
+            fill_norandom = args.fill_norandom,
+        ):
+            if not np.array_equal(prev_min_x, ret.min_x):
+                
+                print_to_log(format_calc.format(
+                    t         = ret.t,
+                    diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
+                    is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
+                    Ix        = ret.min_Ix,
+                    x         = ' '.join(map(lambda x : format_x.format(x = x), ret.min_x)),
+                    time      = current_elasped_time
+                ))
+                current_elasped_time = 0
+
+                if best_min_Ix > ret.min_Ix:
+                    best_min_Ix = ret.min_Ix
+
+            if not args.quiet:
+                print('.', file=sys.stderr, end='')
+                sys.stderr.flush()
+
+            prev_min_x = ret.min_x
+            prev_min_Ix = ret.min_Ix
+            current_elasped_time += ret.elapsed_time
+
+        print_to_log('#END', datetime=True)
+        print('', file=sys.stderr)
+
+
+    print_to_log('#EOF')
+    return
+

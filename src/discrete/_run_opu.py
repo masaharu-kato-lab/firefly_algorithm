@@ -1,3 +1,4 @@
+#!env/bin/python
 import tsp.file
 import argparse
 import distance
@@ -25,11 +26,14 @@ def main():
     argp.add_argument('-u'  , '--urate'        , type=float, required=True , help='Uncertainty rate value')
     argp.add_argument('-t'  , '--tlen'         , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d'  , '--n_drones'     , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
-    argp.add_argument('-i'  , '--init'         , type=str  , default ='nn' , help='Initialization method (\'random\' or \'nn\' (nearest neighbor))') 
+    argp.add_argument('-i'  , '--init'         , type=str  , default ='nn' , help='Initialization method (\'random\' , \'nn\' (nearest neighbor), or \'knn\' (k-nearest neighbor))') 
+    argp.add_argument('-k'  , '--knn_k'        , type=int  , default =None , help='K value when initialization method is k-nearest neighbor')
+    argp.add_argument('-q'  , '--quiet'        , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(        '--verbose'      , action='store_true'       , help='Whether to output details for debugging')
     argp.add_argument(        '--unsafe'       , action='store_true'       , help='Whether to check validation of permutation on each iteration')
     argp.add_argument('-ns' , '--nosort'       , action='store_true'       , help='Whether not to sort fireflies on each iteration')
     argp.add_argument('-fnr', '--fill_norandom', action='store_true'       , help='Fill empty elements in permutation not randomly')
+    argp.add_argument(        '--init_only'    , action='store_true'       , help='Run only initialization')
     argp.add_argument(        '--stdout'       , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
     args = argp.parse_args()
 
@@ -42,30 +46,19 @@ def main():
 
     nodes = list(coords)
 
-
-
-    # Set seed value of random
-    if args.init_seed == None: args.init_seed = random.randrange(2 ** 32 - 1)
-    np.random.seed(seed = args.init_seed)
-
-
-    init_dist = lambda perm : opu.firefly.distance([tuple(coords[p]) for p in perm])
-    I = lambda perm : opu.firefly.luminosity([tuple(coords[p]) for p in perm], n_drones = args.n_drones, eta = args.eta, urate = args.urate)
     x = [0] * args.number
-
-
-
-    if(args.init == 'random'):
-        init_method = lambda nodes : np.random.permutation(nodes)
-    elif(args.init == 'nn'):
-        init_method = lambda nodes : init.nearest_neighbor(nodes, init_dist)
-    else:
-        raise RuntimeError('Invalid name of initialization method.')
-
+    init_method = init.method(
+        args.init,
+        lambda perm : opu.firefly.distance([tuple(coords[p]) for p in perm]),
+        args.init_seed,
+        knn_k = args.knn_k
+    )
 
     for i in range(len(x)):
         x[i] = init_method(nodes)
 
+
+    I = lambda perm : opu.firefly.luminosity([tuple(coords[p]) for p in perm], n_drones = args.n_drones, eta = args.eta, urate = args.urate)
 
     return output.run(
         args,

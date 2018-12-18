@@ -15,18 +15,23 @@
             "name": "_run_opu.py",
             "program": "${workspaceFolder}/src/discrete/_run_opu.py",
             "args":[
-                "-n", "100",
-                "-g", "0.1",
-                "-a", "2.0",
-                "-ba", "2.0",
+                "-n", "93",
+                "-g", "0.01502",
+                "-a", "6.0",
+                "-ba", "6.0",
                 "-e", "0.1",
                 "-t", "1000",
                 "-d", "2",
-                "--unsafe"
+                "-u", "0",
+                "-i", "knn",
+                "-k", "2",
+                "-s", "12345678",
+                "-is", "12345678",
+                "-fnr"
             ],
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal"
-        }
+        },
     ]
 }
