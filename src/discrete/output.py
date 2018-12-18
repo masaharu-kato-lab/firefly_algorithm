@@ -5,13 +5,23 @@ from datetime import datetime
 import firefly
 
 
-def print_to_file(content, filepath):
+def current_time_text():
+    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+
+def print_to_file(content, filepath, *, date=False):
     with open(filepath, mode='a') as f:
-        print(content, file=f)
+        if date:
+            print('{}\t{}'.format(current_time_text(), content), file=f)
+        else:
+            print(content, file=f)
 
 
-def print_to_stdout(content):
-    print(content)
+def print_to_stdout(content, *, date=False):
+    if date:
+        print('{}\t{}'.format(current_time_text(), content))
+    else:
+        print(content)
+
 
 
 def run(args:object, *,
@@ -19,7 +29,12 @@ def run(args:object, *,
     I        : callable,
     distance : callable,
     x        : list = None,
+    format_x    : str,
+    format_init : str,
+    format_calc : str,
+    format_output_filename : str,
 ):
+
 
     # Set seed value of random
     if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
@@ -33,25 +48,36 @@ def run(args:object, *,
         print_func = print_to_stdout
 
     else:
-        output_filename = 'out/{}/{}.txt'.format(today.strftime("%Y%m%d"), today.strftime("%H%M%S"))
+        output_filename = format_output_filename.format(
+            date = today.strftime("%Y%m%d"),
+            time = today.strftime("%H%M%S"),
+            datetime = current_time_text(),
+        )
         os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-        print_func = lambda content : print_to_file(content, output_filename)
+        print_func = lambda content, *, date=False : print_to_file(content, output_filename, date=date)
 
 
     # Output basic information
-    print_func('Discrete Firefly Algorithm')
-    print_func(today.strftime("%Y/%m/%d %H:%M:%S"))
-    print_func('{}'.format(vars(args)))
+    print_func('#Program\tDiscrete Firefly Algorithm')
+    print_func('', date=True)
+    print_func('#Args\t{}'.format(vars(args)))
 
+    print_func('#Initialization')
 
     for i, cx in enumerate(x):
-        print_func('{:>3}: {:12.4f} at [{}]'.format(i, I(cx), ' '.join(map(lambda _x : '{:>2}'.format(_x), cx))))
+        print_func(format_init.format(
+            i = i,
+            Ix = I(cx),
+            x = ' '.join(map(lambda _x : format_x.format(x=_x), cx))
+        ))
 
-
+    
     current_elasped_time = 0
     prev_min_x = np.array([None] * len(nodes))
     prev_min_Ix = float('inf')
     best_min_Ix = float('inf')
+
+    print_func('#Iterations')
 
     # Run firefly algorithm
     for ret in firefly.run(
@@ -71,14 +97,14 @@ def run(args:object, *,
     ):
         if not np.array_equal(prev_min_x, ret.min_x):
             
-            print_func('[{:>6}] {} {}{:12.4f} at [{}] ({:8.4f} sec)'.format(
-                ret.t,
-                'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
-                '*' if best_min_Ix > ret.min_Ix else '.',
-                ret.min_Ix,
-                ' '.join(map(lambda x : '{:>2}'.format(x), ret.min_x)),
-                current_elasped_time
-            ))
+            print_func(format_calc.format(
+                t         = ret.t,
+                diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
+                is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
+                Ix        = ret.min_Ix,
+                x         = ' '.join(map(lambda x : format_x.format(x = x), ret.min_x)),
+                time      = current_elasped_time
+            ), date=True)
             current_elasped_time = 0
 
             if best_min_Ix > ret.min_Ix:
@@ -88,5 +114,4 @@ def run(args:object, *,
         prev_min_Ix = ret.min_Ix
         current_elasped_time += ret.elapsed_time
 
-    print_func('(END)')
-
+    print_func('(END)', date=True)

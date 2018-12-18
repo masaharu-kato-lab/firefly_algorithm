@@ -22,6 +22,7 @@ def main():
     argp.add_argument('-a'  , '--alpha'        , type=float, required=True , help='Alpha value (alpha-step coefficient)')
     argp.add_argument('-ba' , '--blocked_alpha', type=float, default =None , help='Alpha value on fireflies are blocked (Default for do nothing)')
     argp.add_argument('-e'  , '--eta'          , type=float, required=True , help='Eta value (distance penalization coefficient)')
+    argp.add_argument('-u'  , '--urate'        , type=float, required=True , help='Uncertainty rate value')
     argp.add_argument('-t'  , '--tlen'         , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d'  , '--n_drones'     , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
     argp.add_argument('-i'  , '--init'         , type=str  , default ='nn' , help='Initialization method (\'random\' or \'nn\' (nearest neighbor))') 
@@ -49,7 +50,7 @@ def main():
 
 
     init_dist = lambda perm : opu.firefly.distance([tuple(coords[p]) for p in perm])
-    I = lambda perm : opu.firefly.luminosity([tuple(coords[p]) for p in perm], n_drones = args.n_drones, eta = args.eta)
+    I = lambda perm : opu.firefly.luminosity([tuple(coords[p]) for p in perm], n_drones = args.n_drones, eta = args.eta, urate = args.urate)
     x = [0] * args.number
 
 
@@ -72,6 +73,10 @@ def main():
         x        = x,
         I        = I,
         distance = distance.hamming,
+        format_x = '{x:>2}',
+        format_init = '{i:>6}\t{Ix:12.4f}\t[{x}]',
+        format_calc = '{t:>6}\t{Ix:12.4f}\t[{x}]',
+        format_output_filename = 'out/{date}/{datetime}.txt',
     )
 
 

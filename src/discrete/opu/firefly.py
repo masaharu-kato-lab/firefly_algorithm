@@ -9,7 +9,7 @@ with open("res/mapper.pickle", "rb") as f:
 
 # Build the paths from a list of points
 # バッテリの関係でスタート地点に戻らなければならず, それを考慮して経路を決める
-def luminosity(_coords, *, n_drones, eta):
+def luminosity(_coords, *, n_drones, eta, urate):
     coords = copy.copy(_coords)
     limit = 0
     distance = 0
@@ -58,7 +58,7 @@ def luminosity(_coords, *, n_drones, eta):
 
     uncertainty = sum(mean) / len(mean)
 
-    luminosity = 10000 * uncertainty + eta * distance
+    luminosity = urate * uncertainty + eta * distance
 
     return luminosity
 
