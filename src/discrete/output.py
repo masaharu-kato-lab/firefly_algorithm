@@ -29,7 +29,7 @@ def run(args:object, *,
     format_x    : str,
     format_init : str,
     format_calc : str,
-    format_output_filename : str,
+    output_filename : str,
 ):
 
     # Set output function based on argument options
@@ -39,7 +39,7 @@ def run(args:object, *,
         print_to_log = print_to_stdout
 
     else:
-        output_filepath = format_output_filename.format(
+        output_filepath = output_filename.format(
             date = today.strftime("%Y%m%d"),
             time = today.strftime("%H%M%S"),
             datetime = current_time_text(),
@@ -94,7 +94,7 @@ def run(args:object, *,
             distance      = distance,
             unsafe        = args.unsafe,
             sorting       = not args.nosort,
-            fill_norandom = args.fill_norandom,
+            fill_random   = args.perm_fill_random,
         ):
             if not np.array_equal(prev_min_x, ret.min_x):
                 

@@ -9,7 +9,14 @@ with open("res/mapper.pickle", "rb") as f:
 
 # Build the paths from a list of points
 # バッテリの関係でスタート地点に戻らなければならず, それを考慮して経路を決める
-def luminosity(_coords, *, n_drones, eta, urate):
+def luminosity(
+    _coords      : list,  # list of coordinates on target permutation
+    *,
+    n_drones     : int,   # number of available drone(s)
+    u_weight     : float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
+    min_distance : float, # Assumed minimum distance
+    max_distance : float, # Assumed maximum distance
+):
     coords = copy.copy(_coords)
     limit = 0
     distance = 0
@@ -58,7 +65,11 @@ def luminosity(_coords, *, n_drones, eta, urate):
 
     uncertainty = sum(mean) / len(mean)
 
-    luminosity = urate * uncertainty + eta * distance
+    # uncertainly : 0.0 ~ 1.0
+    # distance : 10,000 ~ 20,000
+    # 比率を0.2ずつ見ていく
+    normalized_distance = ((distance - min_distance) / (max_distance - min_distance))
+    luminosity = u_weight * uncertainty + (1.0 - u_weight) * normalized_distance
 
     return luminosity
 
