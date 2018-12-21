@@ -74,7 +74,7 @@ def run(args:object, *,
         
         
         current_elasped_time = 0
-        prev_min_x = np.array([None] * len(nodes))
+        prev_min_x = None
         prev_min_Ix = float('inf')
         best_min_Ix = float('inf')
 
@@ -84,7 +84,6 @@ def run(args:object, *,
         for ret in firefly.run(
             nodes         = nodes,
             seed          = args.seed,
-            number        = args.number,
             x             = x,
             gamma         = args.gamma,
             alpha         = args.alpha,
@@ -96,7 +95,7 @@ def run(args:object, *,
             sorting       = not args.nosort,
             fill_random   = args.perm_fill_random,
         ):
-            if not np.array_equal(prev_min_x, ret.min_x):
+            if not prev_min_x == ret.min_x:
                 
                 print_to_log(format_calc.format(
                     t         = ret.t,

@@ -6,8 +6,8 @@ from stdclass import StdClass
 
 # Firefly algorithm calculation class
 def run(*,
-    x             : list = None,  # Initial fireflies's permutation (list of tuple)
-    number        : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
+    x             : list,         # Initial fireflies's permutation (list of tuple)
+#   number        : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
     nodes         : set  ,        # Set of node names
     I             : callable,     # Objective Function (Originally means light intensity of fireflies)
     distance      : callable,     # Distance Function (calcs distance between two positions)
@@ -25,10 +25,10 @@ def run(*,
     indexes_list = list(range(len(nodes)))
     alpha_step_proc = lambda x : tuple(alphaStep(x, indexes_list, int(np.random.rand() * alpha + 1.0)))
 
-    if x == None:
-        x = [0] * number
-        for i in range(len(x)):
-            x[i] = np.random.permutation(nodes)
+    # if x == None:
+    #     x = [0] * number
+    #     for i in range(len(x)):
+    #         x[i] = np.random.permutation(nodes)
 
     Ix = list(map(I, x))
 
@@ -61,10 +61,12 @@ def run(*,
                     if(not unsafe and not permutation.isValid(new_x[i], nodes)):
                         raise RuntimeError('Invalid permutation.')
 
-        for cIx, cx, cnew_x in zip(Ix, x, new_x):
-            if cx != cnew_x:
-                cIx = I(cnew_x)
-
+        # for i, (cx, cnew_x) in enumerate(zip(x, new_x)):
+        #     if cx != cnew_x:
+        #         Ix[i] = I(cnew_x)
+        
+        x = new_x
+        Ix = list(map(I, x))
         min_id = np.argmin(Ix)
 
         if n_attracted == 0 and blocked_alpha != None:
