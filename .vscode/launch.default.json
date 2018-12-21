@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "_init_bench.py",
+            "program": "${workspaceFolder}/src/discrete/_init_bench.py",
+            "args":[
+                "-n", "100"
+            ],
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "_run_opu.py",
+            "program": "${workspaceFolder}/src/discrete/_run_opu.py",
+            "args":[
+                "-n", "93",
+                "-g", "0.01502",
+                "-a", "6.0",
+                "-ba", "6.0",
+                "-e", "0.1",
+                "-t", "1000",
+                "-d", "2",
+                "-u", "0",
+                "-i", "knn",
+                "-k", "2",
+                "-s", "12345678",
+                "-is", "12345678",
+                "-fnr"
+            ],
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal"
+        },
+    ]
+}
