@@ -1,14 +1,14 @@
 import numpy as np
 import copy
 import time
-import attrdict
 import permutation
+from stdclass import StdClass
 
 # Firefly algorithm calculation class
 def run(*,
-    x             : list = None,  # Initial fireflies's permutation (list of list)
+    x             : list = None,  # Initial fireflies's permutation (list of tuple)
     number        : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
-    nodes         : list ,        # List of node names
+    nodes         : set  ,        # Set of node names
     I             : callable,     # Objective Function (Originally means light intensity of fireflies)
     distance      : callable,     # Distance Function (calcs distance between two positions)
     gamma         : float,        # gamma value
@@ -21,7 +21,9 @@ def run(*,
     fill_random   : bool = False, # Whether to fill empty elements in permutation randomly
 ):
 
-    indexes = list(range(len(nodes)))
+    indexes = set(range(len(nodes)))
+    indexes_list = list(range(len(nodes)))
+    alpha_step_proc = lambda x : tuple(alphaStep(x, indexes_list, int(np.random.rand() * alpha + 1.0)))
 
     if x == None:
         x = [0] * number
@@ -30,7 +32,7 @@ def run(*,
 
     Ix = list(map(I, x))
 
-    ret = attrdict.AttrDict()
+    ret = StdClass()
 
     for t in range(n_gen):
 
@@ -54,19 +56,21 @@ def run(*,
 
                     beta = 1 / (1 + gamma * distance(x[i], x[j]))
                     new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta, fill_random)
-                    new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
+                    new_x[i] = alpha_step_proc(new_beta_x)
 
                     if(not unsafe and not permutation.isValid(new_x[i], nodes)):
                         raise RuntimeError('Invalid permutation.')
 
-        x = new_x
-        Ix = list(map(I, x))
+        for cIx, cx, cnew_x in zip(Ix, x, new_x):
+            if cx != cnew_x:
+                cIx = I(cnew_x)
+
         min_id = np.argmin(Ix)
 
         if n_attracted == 0 and blocked_alpha != None:
             for i in range(len(x)):
                 if(i != min_id):
-                    new_x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
+                    new_x[i] = alpha_step_proc(new_beta_x)
                     if(not unsafe and not permutation.isValid(new_x[i], nodes)):
                         raise RuntimeError('Invalid permutation.')
 
@@ -82,7 +86,7 @@ def run(*,
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)
-def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float, fill_random:bool):
+def betaStep(perm1:tuple, perm2:tuple, nodes:set, indexes:set, beta:float, fill_random:bool):
 
     perm12 = [None] * len(perm1)
     empty_nodes   = copy.copy(nodes)
@@ -97,7 +101,7 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float, fill_
 
 
     # fill empty indexes in perm12
-    for i in empty_indexes:
+    for i in list(empty_indexes):
 
         # choose candidate node from perm1's node or perm2's based on beta value
         candidate_node = perm1[i] if(np.random.rand() > beta) else perm2[i]
@@ -111,14 +115,16 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float, fill_
 
     if(len(empty_nodes)):
 
+        empty_nodes_list = list(empty_nodes)
+
         if not fill_random:
             # fill empty indexes reversely
             for perm12_i in empty_indexes:
-                perm12[perm12_i] = empty_nodes.pop()
+                perm12[perm12_i] = empty_nodes_list.pop()
 
         else:
             # fill empty indexes randomly
-            shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+            shuffled_empty_nodes = np.random.permutation(empty_nodes_list)
             for i, perm12_i in enumerate(empty_indexes):
                 perm12[perm12_i] = shuffled_empty_nodes[i]
 

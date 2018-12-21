@@ -1,7 +1,7 @@
 import copy
 
 # check validity
-def isValid(perm:list, nodes:list):
+def isValid(perm:tuple, nodes:list):
 
     nodes = copy.copy(nodes)
 

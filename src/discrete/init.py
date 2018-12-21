@@ -84,4 +84,5 @@ def method(init_type : str, dist : callable, seed : int, *, knn_k : int):
         raise RuntimeError('Invalid name of initialization method.')
 
 
-    return init_method
+    return lambda nodes : tuple(init_method(nodes))
+

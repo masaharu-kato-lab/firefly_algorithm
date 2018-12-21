@@ -46,27 +46,33 @@ def main():
     if not (args.n_drones >= n_drones_min and args.n_drones <= n_drones_max):
         raise RuntimeError('Invalid number of drones. Specify an integer from {} to {}.'.format(n_drones_min, n_drones_max))
 
-    nodes = list(coords)
+    coords_by_tuple = {}
+    for node in coords:
+        coords_by_tuple[node] = tuple(coords[node])
+
+    nodes = set(coords.keys())
+    nodes_list = list(coords.keys())
 
     x = [0] * args.number
     init_method = init.method(
         args.init,
-        lambda perm : opu.firefly.distance([tuple(coords[p]) for p in perm]),
+        lambda perm : opu.firefly.distance(perm),
         args.init_seed,
         knn_k = args.knn_k
     )
 
     for i in range(len(x)):
-        x[i] = init_method(nodes)
+        x[i] = init_method(nodes_list)
 
-
-    I = lambda perm : opu.firefly.luminosity(
-        [tuple(coords[p]) for p in perm],
+    luminosity_object = opu.firefly.Luminosity(
+        coords = coords_by_tuple,
         n_drones = args.n_drones,
         u_weight = args.u_weight,
         min_distance = args.min_distance,
         max_distance = args.max_distance,
     )
+
+    I = lambda perm : luminosity_object.luminosity(perm)
 
     if not args.output : args.output = 'out/{date}/{datetime}.txt'
 

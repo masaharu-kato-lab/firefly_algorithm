@@ -22,7 +22,7 @@ def print_to_stdout(*args, datetime : bool = False):
 
 
 def run(args:object, *,
-    nodes    : list,
+    nodes    : set,
     I        : callable,
     distance : callable,
     x        : list = None,
