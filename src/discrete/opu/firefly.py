@@ -17,9 +17,10 @@ class Luminosity:
         self.coords = copy.copy(coords)      
         self.n_drones = n_drones    
         self.u_weight = u_weight    
-        self.normalize_distance = lambda d : ((d - min_distance) / (max_distance - min_distance))
         self.battery_dist = battery_dist
         self.drone_speed = drone_speed
+        self.min_distance = min_distance
+        self.max_distance = max_distance
 
         with open("res/mapper.pickle", "rb") as f:
             self.mapper = pickle.load(f)
@@ -41,6 +42,11 @@ class Luminosity:
         return dist / self.drone_speed
 
 
+    # normalize distance
+    def normalize_distance(self, dist):
+        return (dist - self.min_distance) / (self.max_distance - self.min_distance)
+
+
     # # get luminosity of permutation with cache
     # def luminosity(self, perm:tuple):
 
@@ -56,16 +62,14 @@ class Luminosity:
 
         remain_nodes = list(perm)
         current_dist = 0
-        distance = 0
+        whole_distance = 0
         last_node = ['drone'+str(i) for i in range(self.n_drones)]
         start_node = copy.copy(last_node)
         nodes_last_visited_time = {}
         drone_elapsed_time = [0] * self.n_drones
         d = 0
-        solution = []
-        way = []
 
-        while len(remain_nodes) > 0:
+        while len(remain_nodes):
             
             target_node = remain_nodes[0]
 
@@ -76,15 +80,12 @@ class Luminosity:
                 drone_elapsed_time[d] += self.time_by_dist(additional_dist)
 
                 nodes_last_visited_time[target_node] = drone_elapsed_time[d]
-                way.append(target_node)
                 last_node[d] = remain_nodes.pop(0)
 
 
             else:
-                solution.append(way)
-
                 additional_dist = self.dist_of_2(last_node[d], start_node[d])
-                distance += current_dist + additional_dist
+                whole_distance += current_dist + additional_dist
                 drone_elapsed_time[d] += self.time_by_dist(additional_dist)
 
                 d += 1
@@ -92,7 +93,6 @@ class Luminosity:
                     d = 0
 
                 current_dist = 0
-                way = []
                 last_node[d] = start_node[d]
                 
 
@@ -100,15 +100,13 @@ class Luminosity:
 
             if last_node[d] != start_node[d]:
 
-                solution.append(way)
-
                 additional_dist = self.dist_of_2(last_node[d], start_node[d])
-                distance += current_dist + additional_dist
+                whole_distance += current_dist + additional_dist
                 drone_elapsed_time[d] += self.time_by_dist(additional_dist)
 
 
         uncertainty = self.calc_uncertainty(nodes_last_visited_time, max(drone_elapsed_time))
-        luminosity = self.u_weight * uncertainty + (1.0 - self.u_weight) * self.normalize_distance(distance)
+        luminosity = self.u_weight * uncertainty + (1.0 - self.u_weight) * self.normalize_distance(whole_distance)
 
         return luminosity
 
