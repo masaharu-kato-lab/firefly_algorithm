@@ -88,12 +88,12 @@ class Luminosity:
                 whole_distance += current_dist + additional_dist
                 drone_elapsed_time[d] += self.time_by_dist(additional_dist)
 
+                current_dist = 0
+                last_node[d] = start_node[d]
+                
                 d += 1
                 if d >= self.n_drones:
                     d = 0
-
-                current_dist = 0
-                last_node[d] = start_node[d]
                 
 
         for d in range(self.n_drones):
