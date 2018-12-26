@@ -27,8 +27,9 @@ def main():
     argp.add_argument('-mxd', '--max_distance'    , type=float, default=20000 , help='Assumed maximum distance of permutation')
     argp.add_argument('-t'  , '--tlen'            , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d'  , '--n_drones'        , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
-    argp.add_argument('-i'  , '--init'            , type=str  , default ='nn' , help='Initialization method (\'random\' , \'nn\' (nearest neighbor), or \'knn\' (k-nearest neighbor))') 
-    argp.add_argument('-k'  , '--knn_k'           , type=int  , default =None , help='K value when initialization method is k-nearest neighbor')
+    argp.add_argument('-i'  , '--init'            , type=str  , default ='nn' , help="Initialization method ('random' , 'nn' (nearest neighbor), 'knn' (k-means clustering and nearest neighbor)") 
+    argp.add_argument('-k'  , '--knn_k'           , type=int  , default =None , help="K value when initialization method is 'knn' or 'hknn'")
+    argp.add_argument('-rr' , '--random_rate'     , type=float, default =0    , help="Rate of nodes using Random method (normally using with initialize method 'knn'")
     argp.add_argument('-o'  , '--output'          , type=str  , default =None , help='Path for output log (Default for auto)')
     argp.add_argument('-q'  , '--quiet'           , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(        '--verbose'         , action='store_true'       , help='Whether to output details for debugging')
@@ -56,9 +57,13 @@ def main():
         knn_k = args.knn_k
     )
 
-    for i in range(len(x)):
-        x[i] = init_method(nodes)
+    i_random_until = len(x) * args.random_rate
 
+    for i in range(len(x)):
+        if i < i_random_until:
+            x[i] = init.randomly(nodes)
+        else:
+            x[i] = init_method(nodes)
 
     I = lambda perm : opu.firefly.luminosity(
         [tuple(coords[p]) for p in perm],
