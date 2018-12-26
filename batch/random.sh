@@ -1,4 +1,9 @@
 #!/bin/sh
+if [ "$#" -ne 4 ]; then
+  echo "Usage: $0 seed_begin seed_end n_iteration u_weight" >&2
+  exit 1
+fi
+
 log_path=logs/$(basename "$0" .sh)_t$3_rand_u$4
 
 mkdir -p $log_path
