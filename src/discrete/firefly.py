@@ -21,6 +21,7 @@ def run(*,
     fill_random   : bool = False, # Whether to fill empty elements in permutation randomly
 ):
 
+    nodes_list = sorted(list(nodes))
     indexes = set(range(len(nodes)))
     indexes_list = list(range(len(nodes)))
     alpha_step_proc = lambda x : tuple(alphaStep(x, indexes_list, int(np.random.rand() * alpha + 1.0)))
@@ -55,7 +56,7 @@ def run(*,
                     n_attracted += 1
 
                     beta = 1 / (1 + gamma * distance(x[i], x[j]))
-                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta, fill_random)
+                    new_beta_x = betaStep(x[i], x[j], nodes_list, indexes_list, beta, fill_random)
                     new_x[i] = alpha_step_proc(new_beta_x)
 
                     if(not unsafe and not permutation.isValid(new_x[i], nodes)):
@@ -88,7 +89,7 @@ def run(*,
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)
-def betaStep(perm1:tuple, perm2:tuple, nodes:set, indexes:set, beta:float, fill_random:bool):
+def betaStep(perm1:tuple, perm2:tuple, nodes:list, indexes:list, beta:float, fill_random:bool):
 
     perm12 = [None] * len(perm1)
     empty_nodes   = copy.copy(nodes)
@@ -103,7 +104,7 @@ def betaStep(perm1:tuple, perm2:tuple, nodes:set, indexes:set, beta:float, fill_
 
 
     # fill empty indexes in perm12
-    for i in list(empty_indexes):
+    for i in empty_indexes:
 
         # choose candidate node from perm1's node or perm2's based on beta value
         candidate_node = perm1[i] if(np.random.rand() > beta) else perm2[i]
@@ -117,16 +118,14 @@ def betaStep(perm1:tuple, perm2:tuple, nodes:set, indexes:set, beta:float, fill_
 
     if(len(empty_nodes)):
 
-        empty_nodes_list = list(empty_nodes)
-
         if not fill_random:
             # fill empty indexes reversely
             for perm12_i in empty_indexes:
-                perm12[perm12_i] = empty_nodes_list.pop()
+                perm12[perm12_i] = empty_nodes.pop()
 
         else:
             # fill empty indexes randomly
-            shuffled_empty_nodes = np.random.permutation(empty_nodes_list)
+            shuffled_empty_nodes = np.random.permutation(empty_nodes)
             for i, perm12_i in enumerate(empty_indexes):
                 perm12[perm12_i] = shuffled_empty_nodes[i]
 
