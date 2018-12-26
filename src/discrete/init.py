@@ -3,6 +3,10 @@ import copy
 import random
 
 
+def randomly(nodes : list):
+    return np.random.permutation(nodes)
+
+
 def cluster(base_nodes, nodes : list, dist : callable):
 
     nodes_in_classes = []
@@ -19,7 +23,7 @@ def cluster(base_nodes, nodes : list, dist : callable):
 
 
 
-def k_nearest_neighbor(nodes : list, dist : callable, k : int):
+def k_means_nearest_neighbor(nodes : list, dist : callable, k : int):
     
     base_nodes = np.random.choice(nodes, k, replace=False)
 
@@ -35,8 +39,6 @@ def k_nearest_neighbor(nodes : list, dist : callable, k : int):
         perm += nearest_neighbor(nodes_in_class, dist)
 
     return perm
-
-    
 
 
 
@@ -71,14 +73,14 @@ def method(init_type : str, dist : callable, seed : int, *, knn_k : int):
 
 
     if(init_type == 'random'):
-        init_method = lambda nodes : np.random.permutation(nodes)
+        init_method = lambda nodes : randomly(nodes)
 
     elif(init_type == 'nn'):
         init_method = lambda nodes : nearest_neighbor(nodes, dist)
 
     elif(init_type == 'knn'):
         if knn_k == None: raise RuntimeError('K value for k-nearest neighbor initialization unspecified.')
-        init_method = lambda nodes : k_nearest_neighbor(nodes, dist, knn_k)
+        init_method = lambda nodes : k_means_nearest_neighbor(nodes, dist, knn_k)
 
     else:
         raise RuntimeError('Invalid name of initialization method.')
