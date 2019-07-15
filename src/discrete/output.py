@@ -38,7 +38,7 @@ def run(args:object, *,
     if args.stdout:
         print_to_log = print_to_stdout
 
-    else:
+    elif not args.result_only:
         output_filepath = output_filename.format(
             date = today.strftime("%Y%m%d"),
             time = today.strftime("%H%M%S"),
@@ -47,23 +47,26 @@ def run(args:object, *,
         os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
         print_to_log = lambda *args, datetime = False: print_to_file(*args, filepath = output_filepath, datetime = datetime)
 
+    else:
+        print_to_log = lambda *args : None
 
-    # Output basic information
-    print_to_log(
-        '#Program\tDiscrete Firefly Algorithm',
-        '#Args\t{}'.format(vars(args))
-    )
+    if not args.result_only:
+        # Output basic information
+        print_to_log(
+            '#Program\tDiscrete Firefly Algorithm',
+            '#Args\t{}'.format(vars(args))
+        )
 
-    print_to_log('#Initialization', datetime=True)
+        print_to_log('#Initialization', datetime=True)
 
-    for i, cx in enumerate(x):
-        print_to_log(format_init.format(
-            i = i,
-            Ix = I(cx),
-            x = ' '.join(map(lambda _x : format_x.format(x=_x), cx))
-        ))
+        for i, cx in enumerate(x):
+            print_to_log(format_init.format(
+                i = i,
+                Ix = I(cx),
+                x = ' '.join(map(lambda _x : format_x.format(x=_x), cx))
+            ))
 
-    print_to_log('#END', datetime=True)
+        print_to_log('#END', datetime=True)
 
 
     if not args.init_only:
@@ -78,7 +81,8 @@ def run(args:object, *,
         prev_min_Ix = float('inf')
         best_min_Ix = float('inf')
 
-        print_to_log('#Iterations', datetime=True)
+        if not args.result_only:
+            print_to_log('#Iterations', datetime=True)
 
         # Run firefly algorithm
         for ret in firefly.run(
@@ -98,20 +102,21 @@ def run(args:object, *,
         ):
             if not np.array_equal(prev_min_x, ret.min_x):
                 
-                print_to_log(format_calc.format(
-                    t         = ret.t,
-                    diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
-                    is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
-                    Ix        = ret.min_Ix,
-                    x         = ' '.join(map(lambda x : format_x.format(x = x), ret.min_x)),
-                    time      = current_elasped_time
-                ))
+                if not args.result_only:
+                    print_to_log(format_calc.format(
+                        t         = ret.t,
+                        diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
+                        is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
+                        Ix        = ret.min_Ix,
+                        x         = ' '.join(map(lambda x : format_x.format(x = x), ret.min_x)),
+                        time      = current_elasped_time
+                    ))
                 current_elasped_time = 0
 
                 if best_min_Ix > ret.min_Ix:
                     best_min_Ix = ret.min_Ix
 
-            if not args.quiet:
+            if not args.quiet: # and not args.result_only:
                 print('.', file=sys.stderr, end='')
                 sys.stderr.flush()
 
@@ -119,10 +124,16 @@ def run(args:object, *,
             prev_min_Ix = ret.min_Ix
             current_elasped_time += ret.elapsed_time
 
-        print_to_log('#END', datetime=True)
-        print('', file=sys.stderr)
+        if not args.result_only:
+            print_to_log('#END', datetime=True)
+            
+        if not args.quiet:
+            print('', file=sys.stderr)
 
+    if not args.result_only:
+        print_to_log('#EOF')
+    else:
+        print(' '.join(map(lambda x : '{x}'.format(x = x), prev_min_x)))
 
-    print_to_log('#EOF')
     return
 

@@ -27,9 +27,10 @@ def main():
     argp.add_argument('-mxd', '--max_distance'    , type=float, default=20000 , help='Assumed maximum distance of permutation')
     argp.add_argument('-t'  , '--tlen'            , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d'  , '--n_drones'        , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
-    argp.add_argument('-i'  , '--init'            , type=str  , default ='nn' , help="Initialization method ('random' , 'nn' (nearest neighbor), 'knn' (k-means clustering and nearest neighbor)") 
+    argp.add_argument(        '--init'            , type=str  , default ='nn' , help="Initialization method ('random' , 'nn' (nearest neighbor), 'knn' (k-means clustering and nearest neighbor)") 
     argp.add_argument('-k'  , '--knn_k'           , type=int  , default =None , help="K value when initialization method is 'knn' or 'hknn'")
     argp.add_argument('-rr' , '--random_rate'     , type=float, default =0    , help="Rate of nodes using Random method (normally using with initialize method 'knn'")
+    argp.add_argument('-i'  , '--input'           , type=str  , default='res/opu01.tsp', help="Input tsp filepath")
     argp.add_argument('-o'  , '--output'          , type=str  , default =None , help='Path for output log (Default for auto)')
     argp.add_argument('-q'  , '--quiet'           , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(        '--verbose'         , action='store_true'       , help='Whether to output details for debugging')
@@ -38,10 +39,11 @@ def main():
     argp.add_argument('-pfr', '--perm_fill_random', action='store_true'       , help='Fill empty elements in permutation randomly')
     argp.add_argument(        '--init_only'       , action='store_true'       , help='Run only initialization')
     argp.add_argument(        '--stdout'          , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
+    argp.add_argument(        '--result_only'     , action='store_true'       , help='Output only final results to stdout')
     args = argp.parse_args()
 
     # Load coordinates and nodes
-    (datalist, _) = tsp.file.load('res/opu01.tsp')
+    (datalist, _) = tsp.file.load(args.input)
     coords = datalist['NODE_COORD_SECTION']
 
     if not (args.n_drones >= n_drones_min and args.n_drones <= n_drones_max):
