@@ -96,9 +96,7 @@ def run(args:object, *,
             n_gen         = args.tlen,
             I             = I,
             distance      = distance,
-            unsafe        = args.unsafe,
-            sorting       = not args.nosort,
-            fill_random   = args.perm_fill_random,
+            unsafe        = args.unsafe
         ):
             if not np.array_equal(prev_min_x, ret.min_x):
                 

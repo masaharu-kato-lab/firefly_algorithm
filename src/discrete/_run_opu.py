@@ -35,8 +35,6 @@ def main():
     argp.add_argument('-q'  , '--quiet'           , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(        '--verbose'         , action='store_true'       , help='Whether to output details for debugging')
     argp.add_argument(        '--unsafe'          , action='store_true'       , help='Whether to check validation of permutation on each iteration')
-    argp.add_argument('-ns' , '--nosort'          , action='store_true'       , help='Whether not to sort fireflies on each iteration')
-    argp.add_argument('-pfr', '--perm_fill_random', action='store_true'       , help='Fill empty elements in permutation randomly')
     argp.add_argument(        '--init_only'       , action='store_true'       , help='Run only initialization')
     argp.add_argument(        '--stdout'          , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
     argp.add_argument(        '--result_only'     , action='store_true'       , help='Output only final results to stdout')
