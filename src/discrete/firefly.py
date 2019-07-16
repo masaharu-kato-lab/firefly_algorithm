@@ -16,9 +16,7 @@ def run(*,
     blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
     n_gen         : int,          # Number of generation
     seed          : int,          # Random seed
-    unsafe        : bool = False, # Whether to check validation of permutation on each iteration
-    sorting       : bool = True , # Whether to sort fireflies on each iteration
-    fill_random   : bool = False, # Whether to fill empty elements in permutation randomly
+    unsafe        : bool = False  # Whether to check validation of permutation on each iteration
 ):
 
     indexes = list(range(len(nodes)))
@@ -38,37 +36,38 @@ def run(*,
 
         n_attracted = 0
 
-        if sorting:
-            sorted_id = np.argsort(Ix)
-            new_x = [x[i] for i in sorted_id]
-        else:
-            new_x = copy.copy(x)
+        sorted_id = np.argsort(Ix)
+        x = [x[i] for i in sorted_id]
+        Ix = [Ix[i] for i in sorted_id]
 
         # Repeats for all combinations of fireflies
         for i in range(len(x)):
             for j in range(i):
-                
+
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
                 if Ix[i] > Ix[j]:
                     n_attracted += 1
 
                     beta = 1 / (1 + gamma * distance(x[i], x[j]))
-                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta, fill_random)
-                    new_x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
+                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta)
+                    x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
+                    Ix[i] = I(x[i])
 
-                    if(not unsafe and not permutation.isValid(new_x[i], nodes)):
+                    if not unsafe and not permutation.isValid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
 
-        x = new_x
-        Ix = list(map(I, x))
         min_id = np.argmin(Ix)
 
         if n_attracted == 0 and blocked_alpha != None:
             for i in range(len(x)):
                 if(i != min_id):
-                    new_x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
-                    if(not unsafe and not permutation.isValid(new_x[i], nodes)):
+                    x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
+                    Ix[i] = I(x[i])
+
+                    if not unsafe and not permutation.isValid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
+                        
+            min_id = np.argmin(Ix)
 
         ret.t = t
         ret.min_id = min_id
@@ -82,7 +81,7 @@ def run(*,
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)
-def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float, fill_random:bool):
+def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
 
     perm12 = [None] * len(perm1)
     empty_nodes   = copy.copy(nodes)
@@ -111,16 +110,10 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float, fill_
 
     if(len(empty_nodes)):
 
-        if not fill_random:
-            # fill empty indexes reversely
-            for perm12_i in empty_indexes:
-                perm12[perm12_i] = empty_nodes.pop()
-
-        else:
-            # fill empty indexes randomly
-            shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
-            for i, perm12_i in enumerate(empty_indexes):
-                perm12[perm12_i] = shuffled_empty_nodes[i]
+        # fill empty indexes randomly
+        shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+        for i, perm12_i in enumerate(empty_indexes):
+            perm12[perm12_i] = shuffled_empty_nodes[i]
 
 
     return perm12
