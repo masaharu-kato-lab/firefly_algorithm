@@ -4,8 +4,7 @@ Implementation of Firefly Algorithm
 # Installation
 ```
 virtualenv env --python=/usr/bin/python3
-pip install numpy
-pip install distance
+pip install -r requirements.txt
 ```
 
 # Running
@@ -14,9 +13,9 @@ pip install distance
 source env/bin/activate
 ```  
   
-- Tsp Problem (Example)
+- OPU Route Problem (Example)
 ```
-python src/discrete/_run_tsp.py -n 100 -g 0.1 -a 2.0 -t 1000 -f res/oliver30.tsp --stdout
+python src/discrete/_run_opu.py -n 30 -g 0.01502 -a 2.0 -ba 2.0 -t 100 -d 2 -u 0 --init random --quiet --stdout
 ```  
   
 - After running
