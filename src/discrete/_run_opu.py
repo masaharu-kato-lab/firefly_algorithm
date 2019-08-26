@@ -4,6 +4,10 @@ import argparse
 import distance
 import output
 import opu.firefly
+import pickle
+
+import evaluator
+import settings
 
 import numpy as np
 import init
@@ -32,6 +36,7 @@ def main():
     argp.add_argument('-rr' , '--random_rate'     , type=float, default =0    , help="Rate of nodes using Random method (normally using with initialize method 'knn'")
     argp.add_argument('-i'  , '--input'           , type=str  , default='res/opu01.tsp', help="Input tsp filepath")
     argp.add_argument('-o'  , '--output'          , type=str  , default =None , help='Path for output log (Default for auto)')
+    argp.add_argument('-e'  , '--evaluator'       , type=str  , default ='jordan', help="Name of path evaluator ('jordan' or 'simon') ")
     argp.add_argument('-q'  , '--quiet'           , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(        '--verbose'         , action='store_true'       , help='Whether to output details for debugging')
     argp.add_argument(        '--unsafe'          , action='store_true'       , help='Whether to check validation of permutation on each iteration')
@@ -40,19 +45,40 @@ def main():
     argp.add_argument(        '--result_only'     , action='store_true'       , help='Output only final results to stdout')
     args = argp.parse_args()
 
+
+
+
     # Load coordinates and nodes
-    (datalist, _) = tsp.file.load(args.input)
-    coords = datalist['NODE_COORD_SECTION']
+    if args.evaluator == 'jordan':
+        if not (args.n_drones >= n_drones_min and args.n_drones <= n_drones_max):
+            raise RuntimeError('Invalid number of drones. Specify an integer from {} to {}.'.format(n_drones_min, n_drones_max))
 
-    if not (args.n_drones >= n_drones_min and args.n_drones <= n_drones_max):
-        raise RuntimeError('Invalid number of drones. Specify an integer from {} to {}.'.format(n_drones_min, n_drones_max))
+        (datalist, _) = tsp.file.load(args.input)
 
-    nodes = list(coords)
+        coords = {}
+        for index, point in datalist['NODE_COORD_SECTION'].items():
+            coords[index] = tuple(point)
+        
+        nodes = list(coords)
+
+    elif args.evaluator == 'simon':
+
+        coords = {}
+        for index, point in enumerate(settings.CHECKPOINT_ORDERED, start=0):
+            coords[index] = point
+
+        nodes = list(coords)
+        nodes.remove(0)
+
+
+    print("coords:", coords)
+    print("nodes:", nodes)
+
 
     x = [0] * args.number
     init_method = init.method(
         args.init,
-        lambda perm : opu.firefly.distance([tuple(coords[p]) for p in perm]),
+        lambda perm : opu.firefly.distance([coords[p] for p in perm]),
         args.init_seed,
         knn_k = args.knn_k
     )
@@ -65,13 +91,23 @@ def main():
         else:
             x[i] = init_method(nodes)
 
-    I = lambda perm : opu.firefly.luminosity(
-        [tuple(coords[p]) for p in perm],
-        n_drones = args.n_drones,
-        u_weight = args.u_weight,
-        min_distance = args.min_distance,
-        max_distance = args.max_distance,
-    )
+    
+    if args.evaluator == 'jordan':
+        I = lambda perm : opu.firefly.luminosity(
+            [coords[p] for p in perm],
+            n_drones = args.n_drones,
+            u_weight = args.u_weight,
+            min_distance = args.min_distance,
+            max_distance = args.max_distance,
+        )
+
+    elif args.evaluator == 'simon':
+        ev = evaluator.Evaluator()
+        I = lambda perm : ev.evaluate([coords[i] for i in ([0] + list(perm))])
+
+    else:
+        raise RuntimeError("Unknown path evaluator :" + args.evaluator)
+    
 
     if not args.output : args.output = 'out/{date}/{datetime}.txt'
 

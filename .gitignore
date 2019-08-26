@@ -116,3 +116,6 @@ nohup.out
 
 # secret folders and files
 notes/
+
+# pickles
+pickles/
