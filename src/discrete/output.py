@@ -69,6 +69,8 @@ def run(args:object, *,
         print_to_log('#END', datetime=True)
 
 
+    prev_min_x = None
+
     if not args.init_only:
 
         # Set seed value of random
@@ -133,5 +135,5 @@ def run(args:object, *,
     else:
         print(' '.join(map(lambda x : '{x}'.format(x = x), prev_min_x)))
 
-    return
+    return prev_min_x
 

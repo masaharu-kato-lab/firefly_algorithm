@@ -26,9 +26,9 @@ def main():
     argp.add_argument('-g'  , '--gamma'           , type=float, required=True , help='Gamma value (beta-step coefficient)')
     argp.add_argument('-a'  , '--alpha'           , type=float, required=True , help='Alpha value (alpha-step coefficient)')
     argp.add_argument('-ba' , '--blocked_alpha'   , type=float, default =None , help='Alpha value on fireflies are blocked (Default for do nothing)')
-    argp.add_argument('-u'  , '--u_weight'        , type=float, required=True , help='Uncertainty rate value')
-    argp.add_argument('-mnd', '--min_distance'    , type=float, default=10000 , help='Assumed minimum distance of permutation')
-    argp.add_argument('-mxd', '--max_distance'    , type=float, default=20000 , help='Assumed maximum distance of permutation')
+    argp.add_argument('-u'  , '--u_weight'        , type=float, required=True , help='Uncertainty rate value (available in Jordan evaluator)')
+    argp.add_argument('-mnd', '--min_distance'    , type=float, default=10000 , help='Assumed minimum distance of permutation (available in Jordan evaluator)')
+    argp.add_argument('-mxd', '--max_distance'    , type=float, default=20000 , help='Assumed maximum distance of permutation (available in Jordan evaluator)')
     argp.add_argument('-t'  , '--tlen'            , type=int  , required=True , help='Number of calculation')
     argp.add_argument('-d'  , '--n_drones'        , type=int  , required=True , help='Number of drones ({} - {})'.format(n_drones_min, n_drones_max))
     argp.add_argument(        '--init'            , type=str  , default ='nn' , help="Initialization method ('random' , 'nn' (nearest neighbor), 'knn' (k-means clustering and nearest neighbor)") 
@@ -37,6 +37,7 @@ def main():
     argp.add_argument('-i'  , '--input'           , type=str  , default='res/opu01.tsp', help="Input tsp filepath")
     argp.add_argument('-o'  , '--output'          , type=str  , default =None , help='Path for output log (Default for auto)')
     argp.add_argument('-e'  , '--evaluator'       , type=str  , default ='jordan', help="Name of path evaluator ('jordan' or 'simon') ")
+    argp.add_argument('-jo' , '--json_output'     , type=str  , default =None , help='Json output filepath (available in Simon evaluator. No json output if None.)')
     argp.add_argument('-q'  , '--quiet'           , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(        '--verbose'         , action='store_true'       , help='Whether to output details for debugging')
     argp.add_argument(        '--unsafe'          , action='store_true'       , help='Whether to check validation of permutation on each iteration')
@@ -111,7 +112,7 @@ def main():
 
     if not args.output : args.output = 'out/{date}/{datetime}.txt'
 
-    return output.run(
+    min_x = output.run(
         args,
         nodes    = nodes,
         x        = x,
@@ -122,6 +123,9 @@ def main():
         format_calc = '{t:>6}\t{Ix:12.8f}\t[{x}]',
         output_filename = args.output,
     )
+
+    if args.evaluator == 'simon' and args.json_output:
+        ev.json_output([coords[i] for i in ([0] + list(min_x))], args.json_output)
 
 
 
