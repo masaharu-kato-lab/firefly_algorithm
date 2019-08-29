@@ -46,8 +46,7 @@ def main():
     argp.add_argument(        '--result_only'     , action='store_true'       , help='Output only final results to stdout')
     args = argp.parse_args()
 
-
-
+    args.evaluator = args.evaluator.lower()
 
     # Load coordinates and nodes
     if args.evaluator == 'jordan':
@@ -70,6 +69,9 @@ def main():
 
         nodes = list(coords)
         nodes.remove(0)
+
+    else:
+        raise RuntimeError("Unknown path evaluator :" + args.evaluator)
 
 
     print("coords:", coords)

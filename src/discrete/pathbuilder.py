@@ -282,11 +282,11 @@ def route_builder2(route,grid,gridInit):
 		angleSave = angleStart
 		drone = route[i]
 		checkpoint = route[i+1]
-		print('Chemin :', drone, '   ',checkpoint)
+		print('Way :', drone, '   ',checkpoint)
 		grid = grid_constructor(gridInit)
 		temp = aStar(grid[drone[0]][drone[1]],grid[checkpoint[0]][checkpoint[1]],grid,angleStart)
 		angleStart = temp[2]
-		print("fait")
+		print("done")
 		if(time>650):
 			angleTemp = angleStart
 			grid = grid_constructor(gridInit)
@@ -314,7 +314,7 @@ def route_builder2(route,grid,gridInit):
 		else:
 			final_route = final_route + temp[0]
 			time += temp[1]
-	print('Chemin final :',checkpoint, '   ',start)
+	print('Finary way :',checkpoint, '   ',start)
 	grid = grid_constructor(gridInit)
 	final_route = final_route + aStar(grid[checkpoint[0]][checkpoint[1]],grid[start[0]][start[1]],grid,angleStart)[0]
 	for i in newDronePosition:

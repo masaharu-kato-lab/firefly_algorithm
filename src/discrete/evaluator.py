@@ -13,10 +13,10 @@ class Evaluator:
         self.ways = pickle.load(open("res/pickles/ways.pickle", "rb"))
 
     def build_route(self, route):
-        return pathbuilder.route_builder(route, self.ways)[0]
+        return pathbuilder.route_builder(route, self.ways)
 
     def evaluate(self, route):
-        return sum([p.T for p in self.build_route(route)])
+        return sum([p.T for p in self.build_route(route)[0]])
 
     def json_output(self, route, filename):
         data = {}
@@ -28,11 +28,13 @@ class Evaluator:
 
         data['speed'].append(settings.SPEED)
 
-        for p in self.build_route(route):
+        new_route = self.build_route(route)
+
+        for p in new_route[0]:
             data['times'].append(p.T)
             data['points'].append(p.point)
 
-        for checkpoint in route:
+        for checkpoint in new_route[1]:
             data['checkpoints'].append(checkpoint)
 
         for koord in self.original_route:
