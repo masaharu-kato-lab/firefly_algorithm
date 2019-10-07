@@ -24,7 +24,6 @@ def print_to_stdout(*args, datetime : bool = False):
 def run(args:object, *,
     nodes    : list,
     I        : callable,
-    distance : callable,
     x        : list = None,
     format_x    : str,
     format_init : str,
@@ -87,15 +86,12 @@ def run(args:object, *,
         # Run firefly algorithm
         for ret in firefly.run(
             nodes         = nodes,
-            seed          = args.seed,
-            number        = args.number,
             x             = x,
             gamma         = args.gamma,
             alpha         = args.alpha,
             blocked_alpha = args.blocked_alpha,
             n_iterate     = args.n_iterate,
             I             = I,
-            distance      = distance,
             unsafe        = args.unsafe
         ):
             if not np.array_equal(prev_min_x, ret.min_x):

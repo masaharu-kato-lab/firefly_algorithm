@@ -2,29 +2,22 @@ import numpy as np
 import copy
 import time
 import attrdict
-import permutation
+import distance
 
 # Firefly algorithm calculation class
 def run(*,
-    x             : list = None,  # Initial fireflies's permutation (list of list)
-    number        : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
-    nodes         : list ,        # List of node names
-    I             : callable,     # Objective Function (Originally means light intensity of fireflies)
-    distance      : callable,     # Distance Function (calcs distance between two positions)
+    x             : list,         # Initial fireflies's permutation (list of list)
+    nodes         : list,         # List of nodes
+    I             : callable,     # Objective function (originally means light intensity (luminosity) of fireflies)
+    distance      : callable = distance.hamming,     # Distance function between two permutations
     gamma         : float,        # gamma value
     alpha         : float,        # alpha value
     blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
-    n_iterate     : int,          # Number of generation
-    seed          : int,          # Random seed
-    unsafe        : bool = False  # Whether to check validation of permutation on each iteration
+    n_iterate     : int,          # Number of iteration
+    unsafe        : bool = False  # Skip permutation validation if true
 ):
 
     indexes = list(range(len(nodes)))
-
-    if x == None:
-        x = [0] * number
-        for i in range(len(x)):
-            x[i] = np.random.permutation(nodes)
 
     Ix = list(map(I, x))
 
@@ -53,7 +46,7 @@ def run(*,
                     x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
                     Ix[i] = I(x[i])
 
-                    if not unsafe and not permutation.isValid(x[i], nodes):
+                    if not unsafe and not is_valid_permutation(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
 
         min_id = np.argmin(Ix)
@@ -64,7 +57,7 @@ def run(*,
                     x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
                     Ix[i] = I(x[i])
 
-                    if not unsafe and not permutation.isValid(x[i], nodes):
+                    if not unsafe and not is_valid_permutation(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
                         
             min_id = np.argmin(Ix)
@@ -138,3 +131,21 @@ def alphaStep(perm:list, indexes:list, alpha:int):
     #print('a1:', new_p)
     return new_perm
 
+
+# check permutation validity
+def is_valid_permutation(perm:list, nodes:list):
+
+    nodes = copy.copy(nodes)
+
+    for node in perm:
+        # check if node is in nodes and not used yet
+        if(node in nodes):
+            nodes.remove(node)
+        else:
+            return False
+
+    # check if there are unuse nodes
+    if len(nodes):
+        return False
+
+    return True

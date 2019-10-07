@@ -7,7 +7,7 @@ import pickle
 class Drone:
 
     def __init__(self):
-        self.path_data = ???
+        self.path_data = None
         self.home_pos = None
         self.speed = 0.5
         self.battery_capacity = 3000
@@ -24,7 +24,7 @@ class Drone:
         return self.path_data.distance(c1, c2)
 
 
-    def _move_to(self, target)
+    def _move_to(self, target):
         if self.last_pos == target: return
 
         c_distance = self.distance(self.last_pos, target)
@@ -42,7 +42,7 @@ class Drone:
 
     def try_move_to(self, target):
 
-        if self.distance(self.last_pos, target) + self.distance(target, self.home_pos) > battery_remain:
+        if self.distance(self.last_pos, target) + self.distance(target, self.home_pos) > self.battery_remain:
             return False
 
         self._move_to(target)
@@ -61,11 +61,9 @@ class PathDecoder:
         nodes_list   : list,  # list of coordinates on target permutation
         *,
         n_drones     : int,   # number of available drone(s)
-        u_weight     : float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
-        min_distance : float, # Assumed minimum distance
-        max_distance : float, # Assumed maximum distance
     ):
         self.last_visit_time = {}
+        self.n_drones = n_drones
      #   self.remain_nodes = copy.copy(coords)
 
 
@@ -74,8 +72,8 @@ class PathDecoder:
         while len(remain_nodes):
             node = remain_nodes[0]
             
-            if c_drone.try_move_to(node):
-                self.last_visit_time[node] = c_drone.elapsed_time
+            if drone.try_move_to(node):
+                self.last_visit_time[node] = drone.elapsed_time
                 remain_nodes.pop(0)
 
             else:
@@ -88,37 +86,43 @@ class PathDecoder:
     # TODO: 実装
     def build(self):
 
-        solution = []
-
-        drones = [Drone() for _ in range(n_drones)]
+        drones = [Drone() for _ in range(self.n_drones)]
         i_drone = 0
         c_drone = drones[i_drone]
 
-        self.make_one_round()
+        remain_nodes = []
+
+        self.make_one_round(remain_nodes, c_drone)
 
 
-    def calc_value(self):
+def calc_evaluation_value(self,
+    *,
+    drones : list,
+    last_visit_time_on_nodes : dict,
+    safety_weight : float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
+    min_distance : float, # Assumed minimum distance
+    max_distance : float, # Assumed maximum distance
+):
 
-        end_patrol_time = max([drone.elasped_time for drone in drones])
-        safety_on_nodes = []
+    sum_distance    = sum([drone.total_distance for drone in drones])
+    end_patrol_time = max([drone.elasped_time   for drone in drones])
+    safety_on_nodes = [math.exp(-0.001279214 * (end_patrol_time - last_visit_time)) for last_visit_time in last_visit_time_on_nodes.values()]
+    average_safety = sum(safety_on_nodes) / len(safety_on_nodes)
 
-        for element in list(self.last_visit_time.values()):
-            safety_on_nodes.append(math.exp(-0.001279214 * (end_patrol_time - element)))
+    normalized_distance = ((sum_distance - min_distance) / (max_distance - min_distance))
+    luminosity = safety_weight * (1.0 - average_safety) + (1.0 - safety_weight) * normalized_distance
 
-        average_safety = sum(safety_on_nodes) / len(safety_on_nodes)
-
-        normalized_distance = ((distance - self.min_distance) / (self.max_distance - self.min_distance))
-        luminosity = u_weight * average_safety + (1.0 - u_weight) * normalized_distance
-
-        return luminosity
+    return luminosity
 
 
 
 class PathData:
     
-    def __init__(self):
-        with open("res/mapper.pickle", "rb") as f:
+    def __init__(self, filepath : str):
+        with open(filepath, "rb") as f:
             self.mapper = pickle.load(f)
+
+        self.nodes = self.mapper.default_targets
 
 
     # Calc distance of two points
@@ -128,11 +132,11 @@ class PathData:
 
 
     # Calc distance of coords
-    def distance_of_coords(self, coords : list):
+    def distance_of_nodes(self, nodes : list):
 
         distance = 0
-        for i in range(len(coords)-1):
-            distance += self.distance(coords[i], coords[i+1])
+        for i in range(len(nodes)-1):
+            distance += self.distance(nodes[i], nodes[i+1])
 
         return distance
 
