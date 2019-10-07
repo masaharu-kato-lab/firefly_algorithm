@@ -3,87 +3,101 @@ import copy
 import random
 
 
-def randomly(nodes : list):
-    return np.random.permutation(nodes)
+class Clustering:
+
+    def __init__(*, nodes : list, dist : callable, n_cluster : int):
+        self.nodes = nodes
+        self.dist = dist
+        self.n_cluster = n_cluster
 
 
-def cluster(base_nodes, nodes : list, dist : callable):
+    def medoids_cluster(self, medoids : list):
 
-    nodes_in_classes = []
+        clusters_nodes = [[base_node] for base_node in range(len(medoids))]
+        total_cost = 0 # sum of distance between each nodes and its medoid in each clusters
 
-    for base_node in base_nodes:
-        nodes_in_classes.append([base_node])
+        for node in self.nodes:
+            # calc distance from each medoids, and nearset cluster and its distance
+            dist_from_medoids = [self.dist(base_node, node) for base_node in medoids]
+            i_cluster = np.argmin(dist_from_medoids)
+            if node != clusters_nodes[i_cluster][0]:
+                clusters_nodes[i_cluster].append(node)
+                total_cost += dist_from_medoids[i_cluster]
 
-    for node in nodes:
-        class_id = np.argmin([dist([base_node, node]) for base_node in base_nodes])
-        nodes_in_classes[class_id].append(node)
-
-    return nodes_in_classes
-
-
-
-
-def k_means_nearest_neighbor(nodes : list, dist : callable, k : int):
-    
-    base_nodes = np.random.choice(nodes, k, replace=False)
-
-    remain_nodes = copy.copy(nodes)
-    for base_node in base_nodes:
-        remain_nodes.remove(base_node)
-
-    nodes_in_classes = cluster(base_nodes, remain_nodes, dist)
-
-    perm = []
-
-    for nodes_in_class in nodes_in_classes:
-        perm += nearest_neighbor(nodes_in_class, dist)
-
-    return perm
+        return clusters_nodes, total_cost
 
 
+    def choice_random_medoids(self):
+        return np.random.choice(self.nodes, self.n_cluster, replace=False)
 
-def nearest_neighbor(nodes : list, dist : callable, n_random = 1):
 
-    if not len(nodes): return []
+    def random_medoids(self):
+        clusters_nodes, _ =  medoids_cluster(self.choice_random_medoids())
+        return clusters_nodes
 
-    perm = []
-    remain_nodes = copy.copy(nodes)
 
-    for _ in range(n_random):
-        node = np.random.choice(remain_nodes)
-        perm.append(node)
-        remain_nodes.remove(node)
+    def partitioning_around_medoids(self):
 
-    while(len(remain_nodes)):
-        min_id = np.argmin([dist(np.concatenate([perm, [node]])) for node in remain_nodes])
+        # generate initial medoids randomly
+        medoids = self.choice_random_medoids()
+
+        while True:
+            clusters_nodes, original_cost = medoids_cluster(medoids)
+
+            # change medoid on each clusters, and search best change
+            best_medoids = None
+            best_cost = None
+            for i_cluster in range(self.n_cluster):
+                for node in clusters_nodes[1:]:
+                    c_medoids = copy.copy(medoids)
+                    c_medoids[i_cluster] = node
+                    _, c_cost = medoids_cluster(c_medoids)
+                    if best_cost is None or c_cost < best_cost:
+                        best_cost = c_cost
+                        best_medoids = c_medoids
+
+            # if best change does not decrease cost, terminate
+            if best_cost >= original_cost: break
+
+            medoids = best_medoids
+
+        return clusters_nodes
+
         
-        perm.append(remain_nodes[min_id])
+    def apply(self, method_name : str):
+
+        if method_name == None:
+            nodes_list = nodes
+
+        elif method_name == 'rm':
+            nodes_list = self.random_medoids()
+
+        elif method_name == 'pam':
+            nodes_list = self.partitioning_around_medoids()
+
+        else:
+            raise RuntimeError('Unknown method name.')
+
+        return nodes_list
+
+
+
+def nearest_neighbor(target_nodes : list, dist : callable, nn_n_random : int = 1):
+
+    ordered_nodes = []
+    remain_nodes = copy.copy(target_nodes)
+    last_node = None
+
+    for i_itr in range(len(target_nodes)):
+
+        if i_itr < nn_n_random:
+            min_id = np.random.choice(range(len(remain_nodes)))
+        else:
+            min_id = np.argmin([dist(last_node, node) for node in remain_nodes])
+        
+        last_node = remain_nodes[min_id]
+        ordered_nodes.append(last_node)
         remain_nodes.pop(min_id)
 
+    return ordered_nodes
 
-    return perm
-
-
-
-def method(init_type : str, dist : callable, seed : int, *, knn_k : int):
-
-    # Set seed value of random for initialization
-    if seed == None: seed = random.randrange(2 ** 32 - 1)
-    np.random.seed(seed = seed)
-
-
-    if(init_type == 'random'):
-        init_method = lambda nodes : randomly(nodes)
-
-    elif(init_type == 'nn'):
-        init_method = lambda nodes : nearest_neighbor(nodes, dist)
-
-    elif(init_type == 'knn'):
-        if knn_k == None: raise RuntimeError('K value for k-nearest neighbor initialization unspecified.')
-        init_method = lambda nodes : k_means_nearest_neighbor(nodes, dist, knn_k)
-
-    else:
-        raise RuntimeError('Invalid name of initialization method.')
-
-
-    return init_method

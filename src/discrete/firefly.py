@@ -14,7 +14,7 @@ def run(*,
     gamma         : float,        # gamma value
     alpha         : float,        # alpha value
     blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
-    n_gen         : int,          # Number of generation
+    n_iterate     : int,          # Number of generation
     seed          : int,          # Random seed
     unsafe        : bool = False  # Whether to check validation of permutation on each iteration
 ):
@@ -30,7 +30,7 @@ def run(*,
 
     ret = attrdict.AttrDict()
 
-    for t in range(n_gen):
+    for t in range(n_iterate):
 
         start_time = time.time()
 

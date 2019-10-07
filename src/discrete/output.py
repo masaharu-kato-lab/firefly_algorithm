@@ -93,7 +93,7 @@ def run(args:object, *,
             gamma         = args.gamma,
             alpha         = args.alpha,
             blocked_alpha = args.blocked_alpha,
-            n_gen         = args.tlen,
+            n_iterate     = args.n_iterate,
             I             = I,
             distance      = distance,
             unsafe        = args.unsafe
