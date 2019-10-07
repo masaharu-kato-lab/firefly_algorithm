@@ -25,12 +25,18 @@ def run(args:object, *,
     nodes    : list,
     I        : callable,
     x        : list = None,
-    format_x    : str,
+    format_x_elm: str,
     format_init : str,
     format_calc : str,
     output_filename : str,
 ):
 
+    nodes_to_index = {}
+    for i, node in enumerate(nodes):
+        nodes_to_index[node] = i
+
+    formatted_cx = lambda cx: ' '.join([format_x_elm.format(elm=nodes_to_index[elm]) for elm in cx])
+    
     # Set output function based on argument options
     today = datetime.now()
 
@@ -59,11 +65,7 @@ def run(args:object, *,
         print_to_log('#Initialization', datetime=True)
 
         for i, cx in enumerate(x):
-            print_to_log(format_init.format(
-                i = i,
-                Ix = I(cx),
-                x = ' '.join(map(lambda _x : format_x.format(x=_x), cx))
-            ))
+            print_to_log(format_init.format(i = i, Ix = I(cx), x = formatted_cx(cx)))
 
         print_to_log('#END', datetime=True)
 
@@ -102,7 +104,7 @@ def run(args:object, *,
                         diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
                         is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
                         Ix        = ret.min_Ix,
-                        x         = ' '.join(map(lambda x : format_x.format(x = x), ret.min_x)),
+                        x         = formatted_cx(ret.min_x),
                         time      = current_elasped_time
                     ))
                 current_elasped_time = 0
@@ -127,7 +129,7 @@ def run(args:object, *,
     if not args.result_only:
         print_to_log('#EOF')
     else:
-        print(' '.join(map(lambda x : '{x}'.format(x = x), prev_min_x)))
+        print(formatted_cx(prev_min_x))
 
     return
 

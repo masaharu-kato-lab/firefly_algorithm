@@ -104,7 +104,7 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
     if(len(empty_nodes)):
 
         # fill empty indexes randomly
-        shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+        shuffled_empty_nodes = [empty_nodes[i] for i in np.random.permutation(len(empty_nodes))]
         for i, perm12_i in enumerate(empty_indexes):
             perm12[perm12_i] = shuffled_empty_nodes[i]
 

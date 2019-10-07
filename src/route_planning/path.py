@@ -6,15 +6,15 @@ import pickle
 
 class Drone:
 
-    def __init__(self):
-        self.path_data = None
-        self.home_pos = None
+    def __init__(self, path_data):
+        self.path_data = path_data
+        self.home_pos = path_data.home_poses[0]
         self.speed = 0.5
         self.battery_capacity = 3000
         self.battery_per_distance = 1.0
 
         self.pos_list = []
-        self.last_pos = None
+        self.last_pos = self.home_pos
         self.total_distance = 0
         self.elapsed_time = 0
         self.battery_remain = self.battery_capacity
@@ -40,7 +40,7 @@ class Drone:
             raise RuntimeError('Out of battery.')
 
 
-    def try_move_to(self, target):
+    def try_move_to(self, target:tuple):
 
         if self.distance(self.last_pos, target) + self.distance(target, self.home_pos) > self.battery_remain:
             return False
@@ -54,62 +54,67 @@ class Drone:
 
 
 
-class PathDecoder:
+def calc_evaluation_value(
+    clusters_nodes:list,  # list of list
+    *,
+    path_data, # PathData class
+    n_drones:int,   # number of available drone(s)
+    safety_weight:float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
+    distance_range :range, # Assumed distance range
+):
+    drones, last_visit_time_on_nodes = build_drones_path(clusters_nodes, path_data = path_data, n_drones = n_drones)
+    return calc_evaluation_value_with_drones(
+        drones = drones,
+        last_visit_time_on_nodes = last_visit_time_on_nodes,
+        safety_weight = safety_weight,
+        distance_range = distance_range
+    )
 
-    def __init__(
-        self,
-        nodes_list   : list,  # list of coordinates on target permutation
-        *,
-        n_drones     : int,   # number of available drone(s)
-    ):
-        self.last_visit_time = {}
-        self.n_drones = n_drones
-     #   self.remain_nodes = copy.copy(coords)
 
 
-    def make_one_round(self, remain_nodes : list, drone : Drone):
+# Build the paths from a list of points
+def build_drones_path(
+    clusters_nodes:list,  # list of list
+    *,
+    path_data, # PathData class
+    n_drones:int   # number of available drone(s)
+):
+
+    last_visit_time_on_nodes = {}
+    drones = [Drone(path_data) for _ in range(n_drones)]
+    i_drone = 0
+
+    for nodes in clusters_nodes:
+
+        remain_nodes = copy.copy(nodes)
+        drone = drones[i_drone]
 
         while len(remain_nodes):
             node = remain_nodes[0]
-            
-            if drone.try_move_to(node):
-                self.last_visit_time[node] = drone.elapsed_time
-                remain_nodes.pop(0)
-
-            else:
-                break
-
+            if not drone.try_move_to(node): break
+            last_visit_time_on_nodes[node] = drone.elapsed_time
+            remain_nodes.pop(0)
+                
         drone.return_home()
+        i_drone = (i_drone + 1) % n_drones
+
+    return drones, last_visit_time_on_nodes
 
 
-    # Build the paths from a list of points
-    # TODO: 実装
-    def build(self):
 
-        drones = [Drone() for _ in range(self.n_drones)]
-        i_drone = 0
-        c_drone = drones[i_drone]
-
-        remain_nodes = []
-
-        self.make_one_round(remain_nodes, c_drone)
-
-
-def calc_evaluation_value(self,
-    *,
-    drones : list,
-    last_visit_time_on_nodes : dict,
-    safety_weight : float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
-    min_distance : float, # Assumed minimum distance
-    max_distance : float, # Assumed maximum distance
+def calc_evaluation_value_with_drones(*,
+    drones:list, # list of Drone object
+    last_visit_time_on_nodes:dict,
+    safety_weight:float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
+    distance_range :range, # Assumed distance range
 ):
 
     sum_distance    = sum([drone.total_distance for drone in drones])
-    end_patrol_time = max([drone.elasped_time   for drone in drones])
+    end_patrol_time = max([drone.elapsed_time   for drone in drones])
     safety_on_nodes = [math.exp(-0.001279214 * (end_patrol_time - last_visit_time)) for last_visit_time in last_visit_time_on_nodes.values()]
     average_safety = sum(safety_on_nodes) / len(safety_on_nodes)
 
-    normalized_distance = ((sum_distance - min_distance) / (max_distance - min_distance))
+    normalized_distance = ((sum_distance - distance_range.start) / (distance_range.stop - distance_range.start))
     luminosity = safety_weight * (1.0 - average_safety) + (1.0 - safety_weight) * normalized_distance
 
     return luminosity
@@ -123,11 +128,12 @@ class PathData:
             self.mapper = pickle.load(f)
 
         self.nodes = self.mapper.default_targets
+        self.home_poses = self.mapper.starting_point
 
 
     # Calc distance of two points
-    def distance(self, c1 : tuple, c2 : tuple):
-
+    def distance(self, c1:tuple, c2:tuple):
+        if c1 == c2: return 0
         return self.mapper.paths[(c1, c2)][1]
 
 

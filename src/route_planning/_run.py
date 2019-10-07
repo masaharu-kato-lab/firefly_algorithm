@@ -26,7 +26,7 @@ def main():
     argp.add_argument('-o'   , '--output'       , type=str  , default =None , help='Path for output log (Default for auto)')
 
     argp.add_argument('-icm' , '--init_clustering_method', type=str  , default =None , choices=["rm", "pam"], help="Initialization clustering method (None for no clustering, 'rm' (random medoids) or 'pam' (partitioning around medoids))")
-    argp.add_argument('-inc' , '--init_n_clusters'       , type=int  , default =None , help="Number of clusters when `--init_clustering` is 'k-medoids'")
+    argp.add_argument('-inc' , '--init_n_cluster'        , type=int  , default =None , help="Number of clusters when `--init_clustering` is 'k-medoids'")
     argp.add_argument('-innr', '--init_nn_rate', type=float, default =0    , help="Rate of nodes using nearest neighbor when building path")
 
     argp.add_argument('-q' ,'--quiet'      , action='store_true'       , help='Do not show progress to stderr')
@@ -38,28 +38,28 @@ def main():
     args = argp.parse_args()
 
     # Load coordinates and nodes
-    pathdata = path.PathData(args.input)
-    nodes = pathdata.nodes
-    dist_func = lambda node1, node2 : pathdata.distance(node1, node2)
+    path_data = path.PathData(args.input)
+    nodes = path_data.nodes
+    dist_func = path_data.distance
 
     x = init.generate(
+        nodes = path_data.nodes,
         number = args.number,
-        clustering_function = init.get_clustering_function(
-            method = args.init_clustering_method,
-            nodes = pathdata.nodes,
-            n_cluster = args.n_cluster,
-            dist_func = dist_func,
-        ),
+        clustering_method = args.init_clustering_method,
+        n_cluster = args.init_n_cluster,
         nn_rate = args.init_nn_rate,
         dist_func = dist_func
     )
 
-    I = lambda perm : pathdata.distance_of_nodes(
-        perm,
+    # print(x)
+    # exit()
+
+    I = lambda perm : path.calc_evaluation_value(
+        [perm],
+        path_data = path_data,
         n_drones = args.n_drones,
         safety_weight = args.safety_weight,
-        min_distance = args.min_distance,
-        max_distance = args.max_distance,
+        distance_range = range(args.min_distance, args.max_distance)
     )
 
     if not args.output : args.output = 'out/{date}/{datetime}.txt'
@@ -69,7 +69,7 @@ def main():
         nodes    = nodes,
         x        = x,
         I        = I,
-        format_x = '{x:>2}',
+        format_x_elm = '{elm:>2}',
         format_init = '{i:>6}\t{Ix:12.8f}\t[{x}]',
         format_calc = '{t:>6}\t{Ix:12.8f}\t[{x}]',
         output_filename = args.output,

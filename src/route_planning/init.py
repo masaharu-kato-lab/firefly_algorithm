@@ -3,7 +3,21 @@ import copy
 import random
 
 
-def generate(*, number:int, clustering_function:callable, nn_rate:float, dist_func:callable):
+def generate(*,
+    nodes:list,
+    number:int,
+    clustering_method:str,
+    n_cluster:int,
+    nn_rate:float,
+    dist_func:callable
+):
+
+    clustering_function = get_clustering_function(
+        method = clustering_method,
+        nodes = nodes,
+        n_cluster = n_cluster,
+        dist_func = dist_func,
+    )
 
     n_init_random_build = number * (1.0 - nn_rate)
 
@@ -14,9 +28,9 @@ def generate(*, number:int, clustering_function:callable, nn_rate:float, dist_fu
         clusters_nodes = clustering_function()
 
         if i < n_init_random_build:
-            x[i] = build_randomly(clusters_nodes)
+            x[i] = build_randomly(nodes)
         else:
-            x[i] = build_by_nearest_neighbor(clusters_nodes, dist_func)
+            x[i] = build_single_by_nearest_neighbor(clusters_nodes, dist_func)
 
     return x
 
@@ -42,12 +56,12 @@ def no_clustering(nodes:list):
 
 def medoids_cluster(nodes:list, medoids:list, dist:callable):
 
-    clusters_nodes = [[base_node] for base_node in range(len(medoids))]
+    clusters_nodes = [[medoid] for medoid in medoids]
     total_cost = 0 # sum of distance between each nodes and its medoid in each clusters
 
     for node in nodes:
         # calc distance from each medoids, and nearset cluster and its distance
-        dist_from_medoids = [dist(base_node, node) for base_node in medoids]
+        dist_from_medoids = [dist(medoid, node) for medoid in medoids]
         i_cluster = np.argmin(dist_from_medoids)
         if node != clusters_nodes[i_cluster][0]:
             clusters_nodes[i_cluster].append(node)
@@ -57,7 +71,7 @@ def medoids_cluster(nodes:list, medoids:list, dist:callable):
 
 
 def choice_random_medoids(nodes:list, n_cluster:int):
-    return np.random.choice(nodes, n_cluster, replace=False)
+    return [nodes[i] for i in np.random.choice(len(nodes), n_cluster, replace=False)]
 
 
 def random_medoids(nodes:list, n_cluster:int, dist:callable):
@@ -93,6 +107,12 @@ def partitioning_around_medoids(nodes:list, n_cluster:int, dist:callable):
     return clusters_nodes
 
     
+def build_single_by_nearest_neighbor(clusters_nodes : list, dist : callable, nn_n_random : int = 1):
+    ordered_nodes = []
+    for nodes in clusters_nodes:
+        ordered_nodes.extend(build_by_nearest_neighbor(nodes, dist, nn_n_random))
+    return ordered_nodes
+
 
 def build_by_nearest_neighbor(nodes : list, dist : callable, nn_n_random : int = 1):
 
@@ -115,5 +135,5 @@ def build_by_nearest_neighbor(nodes : list, dist : callable, nn_n_random : int =
 
 
 def build_randomly(nodes : list):
-    return np.random.permutation(nodes)
+    return [nodes[i] for i in np.random.permutation(len(nodes))]
 
