@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 import firefly_with_log
-import path
+import route
 import init
 
 def main():
@@ -38,9 +38,19 @@ def main():
     args = argp.parse_args()
 
     # Load coordinates and nodes
-    path_data = path.PathData(args.input)
+    path_data = route.PathData(args.input)
     nodes = path_data.nodes
     dist_func = path_data.distance
+    
+    drone_prop = route.DroneProperty(path_data)
+    plan_prop = route.PlanProperty(
+        path_data = path_data,
+        drone_prop = drone_prop,
+        n_drones = args.n_drones,
+        safety_weight = args.safety_weight,
+        min_distance = args.min_distance,
+        max_distance = args.max_distance,
+    )
 
     x = init.generate(
         nodes = path_data.nodes,
@@ -52,15 +62,10 @@ def main():
     )
 
     # print(x)
-    # exit()
+    # exit()　
 
-    I = lambda perm : path.calc_evaluation_value(
-        [perm],
-        path_data = path_data,
-        n_drones = args.n_drones,
-        safety_weight = args.safety_weight,
-        distance_range = range(args.min_distance, args.max_distance)
-    )
+
+    I = lambda perm : route.Plan(plan_prop, [perm])
 
     if not args.output : args.output = 'out/{date}/{datetime}.txt'
 
@@ -70,8 +75,8 @@ def main():
         x        = x,
         I        = I,
         format_x_elm = '{elm:>2}',
-        format_init = '{i:>6}\t{Ix:12.8f}\t[{x}]',
-        format_calc = '{t:>6}\t{Ix:12.8f}\t[{x}]',
+        format_init = '{i:>6}\t{Ix:12.8f}\t{x}',
+        format_calc = '{t:>6}\t{Ix:12.8f}\t{x}',
         output_filename = args.output,
     )
 

@@ -31,11 +31,6 @@ def run(args:object, *,
     output_filename : str,
 ):
 
-    nodes_to_index = {}
-    for i, node in enumerate(nodes):
-        nodes_to_index[node] = i
-
-    formatted_cx = lambda cx: ' '.join([format_x_elm.format(elm=nodes_to_index[elm]) for elm in cx])
     
     # Set output function based on argument options
     today = datetime.now()
@@ -65,7 +60,8 @@ def run(args:object, *,
         print_to_log('#Initialization', datetime=True)
 
         for i, cx in enumerate(x):
-            print_to_log(format_init.format(i = i, Ix = I(cx), x = formatted_cx(cx)))
+            i_cx = I(cx)
+            print_to_log(format_init.format(i = i, Ix = i_cx.value, x = i_cx.log))
 
         print_to_log('#END', datetime=True)
 
@@ -79,8 +75,8 @@ def run(args:object, *,
         
         current_elasped_time = 0
         prev_min_x = np.array([None] * len(nodes))
-        prev_min_Ix = float('inf')
-        best_min_Ix = float('inf')
+        prev_min_Ix = None
+        best_min_Ix = None
 
         if not args.result_only:
             print_to_log('#Iterations', datetime=True)
@@ -101,15 +97,15 @@ def run(args:object, *,
                 if not args.result_only:
                     print_to_log(format_calc.format(
                         t         = ret.t,
-                        diff_type = 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
-                        is_min    = '*' if best_min_Ix > ret.min_Ix else '.',
-                        Ix        = ret.min_Ix,
-                        x         = formatted_cx(ret.min_x),
+                        diff_type = ' ' if prev_min_Ix is None else 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
+                        is_min    = ' ' if prev_min_Ix is None else '*' if best_min_Ix > ret.min_Ix else '.',
+                        Ix        = ret.min_Ix.value,
+                        x         = ret.min_Ix.log,
                         time      = current_elasped_time
                     ))
                 current_elasped_time = 0
 
-                if best_min_Ix > ret.min_Ix:
+                if best_min_Ix is None or best_min_Ix > ret.min_Ix:
                     best_min_Ix = ret.min_Ix
 
             if not args.quiet: # and not args.result_only:
@@ -129,7 +125,7 @@ def run(args:object, *,
     if not args.result_only:
         print_to_log('#EOF')
     else:
-        print(formatted_cx(prev_min_x))
+        print(prev_min_Ix.log)
 
     return
 
