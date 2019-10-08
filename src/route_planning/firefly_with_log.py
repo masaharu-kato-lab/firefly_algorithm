@@ -5,6 +5,9 @@ import sys
 from datetime import datetime
 import firefly
 
+from typing import List, Dict, Tuple
+Node = Tuple[int, int]
+
 
 def current_time_text():
     return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
@@ -22,9 +25,9 @@ def print_to_stdout(*args, datetime : bool = False):
 
 
 def run(args:object, *,
-    nodes    : list,
-    I        : callable,
-    x        : list = None,
+    nodes       : List[Node],
+    make_plan  : callable,
+    x           : List[List[Node]],
     format_x_elm: str,
     format_init : str,
     format_calc : str,
@@ -60,8 +63,8 @@ def run(args:object, *,
         print_to_log('#Initialization', datetime=True)
 
         for i, cx in enumerate(x):
-            i_cx = I(cx)
-            print_to_log(format_init.format(i = i, Ix = i_cx.value, x = i_cx.log))
+            i_cx = make_plan(cx)
+            print_to_log(format_init.format(i = i, plan_value = i_cx.value, plan_log = i_cx.log))
 
         print_to_log('#END', datetime=True)
 
@@ -75,8 +78,8 @@ def run(args:object, *,
         
         current_elasped_time = 0
         prev_min_x = np.array([None] * len(nodes))
-        prev_min_Ix = None
-        best_min_Ix = None
+        prev_best_plan = None
+        best_plan = None
 
         if not args.result_only:
             print_to_log('#Iterations', datetime=True)
@@ -89,31 +92,30 @@ def run(args:object, *,
             alpha         = args.alpha,
             blocked_alpha = args.blocked_alpha,
             n_iterate     = args.n_iterate,
-            I             = I,
+            make_plan    = make_plan,
             unsafe        = args.unsafe
         ):
-            if not np.array_equal(prev_min_x, ret.min_x):
+            if not np.array_equal(prev_best_plan, ret.best_plan):
                 
                 if not args.result_only:
                     print_to_log(format_calc.format(
-                        t         = ret.t,
-                        diff_type = ' ' if prev_min_Ix is None else 'v' if prev_min_Ix > ret.min_Ix else '^' if prev_min_Ix < ret.min_Ix else '=',
-                        is_min    = ' ' if prev_min_Ix is None else '*' if best_min_Ix > ret.min_Ix else '.',
-                        Ix        = ret.min_Ix.value,
-                        x         = ret.min_Ix.log,
-                        time      = current_elasped_time
+                        t          = ret.t,
+                        diff_type  = ' ' if prev_best_plan is None else 'v' if prev_best_plan > ret.best_plan else '^' if prev_best_plan < ret.best_plan else '=',
+                        is_min     = ' ' if prev_best_plan is None else '*' if best_plan > ret.best_plan else '.',
+                        plan_value = ret.best_plan.value,
+                        plan_log   = ret.best_plan.log,
+                        time       = current_elasped_time
                     ))
                 current_elasped_time = 0
 
-                if best_min_Ix is None or best_min_Ix > ret.min_Ix:
-                    best_min_Ix = ret.min_Ix
+                if best_plan is None or best_plan > ret.best_plan:
+                    best_plan = ret.best_plan
 
             if not args.quiet: # and not args.result_only:
                 print('.', file=sys.stderr, end='')
                 sys.stderr.flush()
 
-            prev_min_x = ret.min_x
-            prev_min_Ix = ret.min_Ix
+            prev_best_plan = ret.best_plan
             current_elasped_time += ret.elapsed_time
 
         if not args.result_only:
@@ -125,7 +127,7 @@ def run(args:object, *,
     if not args.result_only:
         print_to_log('#EOF')
     else:
-        print(prev_min_Ix.log)
+        print(prev_best_plan.log)
 
-    return
+    return prev_best_plan
 

@@ -1,11 +1,15 @@
 import numpy as np
 import copy
 import random
+# from types import List, Dict, Tuple, Node
+
+from typing import List, Dict, Tuple
+Node = Tuple[int, int]
 
 
 def generate(*,
-    nodes:list,
-    number:int,
+    nodes:List[Node],
+    n_firefly:int,
     clustering_method:str,
     n_cluster:int,
     nn_rate:float,
@@ -19,9 +23,9 @@ def generate(*,
         dist_func = dist_func,
     )
 
-    n_init_random_build = number * (1.0 - nn_rate)
+    n_init_random_build = n_firefly * (1.0 - nn_rate)
 
-    x = [0] * number
+    x = [0] * n_firefly
 
     for i in range(len(x)):
 
@@ -35,7 +39,7 @@ def generate(*,
     return x
 
 
-def get_clustering_function(*, method : str, nodes : list, n_cluster : int, dist_func:callable):
+def get_clustering_function(*, method:str, nodes:List[Node], n_cluster:int, dist_func:callable):
 
     if method == None:
         return lambda: no_clustering(nodes)
@@ -50,11 +54,11 @@ def get_clustering_function(*, method : str, nodes : list, n_cluster : int, dist
         raise RuntimeError('Unknown method name.')
 
 
-def no_clustering(nodes:list):
+def no_clustering(nodes:List[Node]):
     return [nodes]
 
 
-def medoids_cluster(nodes:list, medoids:list, dist:callable):
+def medoids_cluster(nodes:List[Node], medoids:List[Node], dist:callable):
 
     clusters_nodes = [[medoid] for medoid in medoids]
     total_cost = 0 # sum of distance between each nodes and its medoid in each clusters
@@ -70,16 +74,16 @@ def medoids_cluster(nodes:list, medoids:list, dist:callable):
     return clusters_nodes, total_cost
 
 
-def choice_random_medoids(nodes:list, n_cluster:int):
+def choice_random_medoids(nodes:List[Node], n_cluster:int):
     return [nodes[i] for i in np.random.choice(len(nodes), n_cluster, replace=False)]
 
 
-def random_medoids(nodes:list, n_cluster:int, dist:callable):
+def random_medoids(nodes:List[Node], n_cluster:int, dist:callable):
     clusters_nodes, _ = medoids_cluster(nodes, choice_random_medoids(nodes, n_cluster), dist)
     return clusters_nodes
 
 
-def partitioning_around_medoids(nodes:list, n_cluster:int, dist:callable):
+def partitioning_around_medoids(nodes:List[Node], n_cluster:int, dist:callable):
 
     # generate initial medoids randomly
     medoids = choice_random_medoids(nodes, n_cluster)
@@ -107,14 +111,14 @@ def partitioning_around_medoids(nodes:list, n_cluster:int, dist:callable):
     return clusters_nodes
 
     
-def build_single_by_nearest_neighbor(clusters_nodes : list, dist : callable, nn_n_random : int = 1):
+def build_single_by_nearest_neighbor(clusters_nodes:List[List[Node]], dist_func:callable, nn_n_random:int = 1):
     ordered_nodes = []
     for nodes in clusters_nodes:
-        ordered_nodes.extend(build_by_nearest_neighbor(nodes, dist, nn_n_random))
+        ordered_nodes.extend(build_by_nearest_neighbor(nodes, dist_func, nn_n_random))
     return ordered_nodes
 
 
-def build_by_nearest_neighbor(nodes : list, dist : callable, nn_n_random : int = 1):
+def build_by_nearest_neighbor(nodes:List[Node], dist:callable, nn_n_random:int = 1):
 
     ordered_nodes = []
     remain_nodes = copy.copy(nodes)
@@ -134,6 +138,6 @@ def build_by_nearest_neighbor(nodes : list, dist : callable, nn_n_random : int =
     return ordered_nodes
 
 
-def build_randomly(nodes : list):
+def build_randomly(nodes:List[Node]):
     return [nodes[i] for i in np.random.permutation(len(nodes))]
 

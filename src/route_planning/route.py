@@ -2,11 +2,15 @@ import copy
 import math
 import random
 import pickle
-from typing import List, Dict, Tuple
 from functools import total_ordering
 
+
+# from types import List, Dict, Tuple, Node
+
+from typing import List, Dict, Tuple
 Node = Tuple[int, int]
 Time = float
+
 
 class PathData:
 
