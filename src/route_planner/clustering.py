@@ -9,13 +9,15 @@ Node = Tuple[int, int]
 # get function (lambda) from clustering method name
 def get_function(*, method:str, nodes:List[Node], n_cluster:int, dist:callable) -> callable:
 
+    method = method.lower()
+
     if method == 'none':
         return lambda: no_clustering(nodes)
 
-    elif method == 'rm':
+    elif method == 'rmed':
         return lambda: random_medoids(nodes, n_cluster, dist)
 
-    elif method == 'pam':
+    elif method == 'pamed':
         return lambda: partitioning_around_medoids(nodes, n_cluster, dist)
 
     else:

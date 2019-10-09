@@ -17,16 +17,17 @@ def run(*,
     make_plan     : callable,         # Objective function (originally means light intensity (luminosity) of fireflies)
     gamma         : float,            # gamma value
     alpha         : float,            # alpha value
-    blocked_alpha : float = None,     # alpha value on fireflies are blocked (None for do nothing)
+    blocked_alpha : float = None,     # alpha value on fireflies are blocked (None to equal to normal alpha)
     continue_coef : callable,         # Number of iteration
     unsafe        : bool = False      # Skip permutation validation if true
 ):
     
+    if blocked_alpha is None: blocked_alpha = alpha    
     indexes = list(range(len(nodes)))
-
     plans = list(map(make_plan, x))
 
     ret = attrdict.AttrDict()
+    ret.best_itr = None
     ret.best_plan = None
 
     t = 0
@@ -57,7 +58,7 @@ def run(*,
 
         best_id = np.argmin(plans)
 
-        if n_attracted == 0 and blocked_alpha != None:
+        if n_attracted == 0:
             for i in range(len(x)):
                 if(i != best_id):
                     x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
@@ -73,6 +74,7 @@ def run(*,
         ret.c_itr = t
 
         if ret.best_plan is None or plans[best_id] < ret.best_plan:
+            ret.prev_best_itr = ret.best_itr
             ret.best_itr = t
             ret.best_id = best_id
             ret.best_plan = plans[best_id]

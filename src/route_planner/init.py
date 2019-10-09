@@ -27,14 +27,15 @@ def generate(args, *, path_data:route.PathData) -> List[List[Node]]:
 def _generate(args, *, path_data:route.PathData) -> List[List[Node]]:
 
     np.random.seed(seed = args.init_seed)
+    bld_method = args.init_bld_method.lower()
 
-    if args.init_bld_method == 'random':
-        return random_generate(nodes = path_data.nodes, n_indiv = args.n_indiv)
+    # if bld_method == 'random':
+    #     return random_generate(nodes = path_data.nodes, n_indiv = args.n_indiv)
 
     bld_dist = distances.get_func(args.init_bld_dist, path_data = path_data)
     cls_dist = distances.get_func(args.init_cls_dist, path_data = path_data)
 
-    if args.init_bld_method == 'ann':
+    if bld_method == 'rnn':
         return mix_generate(
             nodes = path_data.nodes,
             n_indiv = args.n_indiv,
@@ -46,7 +47,7 @@ def _generate(args, *, path_data:route.PathData) -> List[List[Node]]:
             cls_each = args.init_cls_each
         )
 
-    elif args.init_bld_method == 'cpnn':
+    elif bld_method == 'cpnn':
         return cluster_patterned_generate(
             nodes = path_data.nodes,
             n_indiv = args.n_indiv,

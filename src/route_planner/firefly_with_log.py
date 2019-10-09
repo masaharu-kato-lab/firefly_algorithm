@@ -79,7 +79,6 @@ def run(args, *,
 
         # print_to_log(legend_calc)
         last_ret = None
-        last_plan_log = None
 
         # Run firefly algorithm
         for ret in firefly.run(
@@ -107,7 +106,7 @@ def run(args, *,
 
                 # current_elasped_time = 0
 
-            if not args.quiet: # and not args.result_only:
+            if args.show_progress: # and not args.result_only:
                 print('.', file=sys.stderr, end='')
                 sys.stderr.flush()
 
@@ -115,9 +114,9 @@ def run(args, *,
             # current_elasped_time += ret.elapsed_time
 
         if not args.result_only:
-            print_to_log('{t:>6}\t#END'.format(t = ret.c_itr), datetime=True)
+            print_to_log('{t:>6}\t#END'.format(t = last_ret.c_itr), datetime=True)
             
-        if not args.quiet:
+        if args.show_progress:
             print('', file=sys.stderr)
 
     if not args.result_only:
@@ -125,5 +124,8 @@ def run(args, *,
     else:
         print(last_ret.text)
 
-    return last_ret.best_plan, last_plan_log
+
+    last_ret.plan_log = last_plan_log
+
+    return last_ret
 

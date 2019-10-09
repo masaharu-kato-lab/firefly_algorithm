@@ -2,6 +2,8 @@ import numpy as np
 
 
 def get_func(name:str, *, path_data, w_angle=None):
+
+    name = name.lower()
     
     if name == "aster":
         return path_data.distance
