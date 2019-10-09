@@ -26,7 +26,7 @@ def main():
     # argp.add_argument('-mind', '--min_distance'  , type=float, default=10000    , help='Assumed minimum distance of permutation')
     # argp.add_argument('-maxd', '--max_distance'  , type=float, default=20000    , help='Assumed maximum distance of permutation')
     argp.add_argument('-t'   , '--n_iterate'       , type=int  , default =100000  , help='Number of iteration')
-    argp.add_argument('-nis' , '--n_itr_steady'    , type=int  , default =100     , help='Number of iteration for steady convergence (and terminate) (optional)')
+    argp.add_argument('-nis' , '--n_itr_steady'    , type=int  , default =100     , help='Number of iteration to continue with no update of best inidvidual (optional)')
     argp.add_argument('-nr'  , '--n_run'           , type=int  , default=1        , help='Number of running')
     argp.add_argument('-ndr' , '--n_drones'        , type=int  , required=True    , help='Number of drones')
     argp.add_argument('-i'   , '--input'           , type=str  , default='res/pathdata/opu.pickle', help="Input pathdata pickle filepath")

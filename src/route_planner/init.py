@@ -14,11 +14,11 @@ def generate(args, *, path_data:route.PathData) -> List[List[Node]]:
     
     indivs = _generate(args, path_data = path_data)
 
-#    if not all([permutation.is_valid(indiv, path_data.nodes) for indiv in indivs]):
-#        raise RuntimeError('Invalid individuals.')
-    for i, indiv in enumerate(indivs):
-        if not permutation.is_valid(indiv, path_data.nodes):
-            raise RuntimeError('Invalid individuals.')
+    if not all([permutation.is_valid(indiv, path_data.nodes) for indiv in indivs]):
+       raise RuntimeError('Invalid individuals.')
+    # for i, indiv in enumerate(indivs):
+    #     if not permutation.is_valid(indiv, path_data.nodes):
+    #         raise RuntimeError('Invalid individuals.')
 
     return indivs
 

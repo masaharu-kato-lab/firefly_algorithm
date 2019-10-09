@@ -7,11 +7,9 @@ Node = Tuple[int, int]
 import nd_equation
 
 class Builder:
-
-    Method = Any
     
     def __init__(self, *,
-        methods_func_dof:Dict[Method, Tuple[callable, int]], # dict(method, tuple(method lambda, degree of freedom)) 
+        methods_func_dof:Dict[Any, Tuple[callable, int]], # dict(method, tuple(method lambda, degree of freedom)) 
         clusters_nodes:List[List[Node]]
     ):
         self.clusters_nodes  = clusters_nodes
@@ -26,7 +24,7 @@ class Builder:
         return self.build_with_multiple_pattern(self.calc_number_of_pattern(total_number))
 
 
-    def build_with_multiple_pattern(self, number_of_pattern:Dict[Method, int]) -> List[List[Node]]:
+    def build_with_multiple_pattern(self, number_of_pattern:Dict[Any, int]) -> List[List[Node]]:
         nodes_list = []
         for pattern, number in number_of_pattern.items():
             for _ in range(number):
@@ -34,7 +32,7 @@ class Builder:
         return nodes_list
 
 
-    def build_with_pattern(self, pattern:List[Method]) -> List[Node]:
+    def build_with_pattern(self, pattern:List[Any]) -> List[Node]:
         whole_nodes = []
         for i, nodes in enumerate(self.clusters_nodes):
             whole_nodes.extend((self.func_of_methods[pattern[i]])(nodes))
@@ -42,7 +40,7 @@ class Builder:
 
 
     # dof = degree of freedom (= number of random constructing)
-    def calc_number_of_pattern(self, total_number:int) -> Dict[Method, int]:
+    def calc_number_of_pattern(self, total_number:int) -> Dict[Any, int]:
 
         dof_count = {}
         dof_of_patterns = {}

@@ -115,7 +115,7 @@ def run(args, *,
             # current_elasped_time += ret.elapsed_time
 
         if not args.result_only:
-            print_to_log('#END on iteration {}.)'.format(ret.c_itr), datetime=True)
+            print_to_log('{t:>6}\t#END'.format(t = ret.c_itr), datetime=True)
             
         if not args.quiet:
             print('', file=sys.stderr)
