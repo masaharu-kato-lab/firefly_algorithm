@@ -80,7 +80,6 @@ def main():
     else:
         print_to_summary = lambda *args, datetime = None: None
 
-
     print_to_summary(
         '#Program\tRoute Planner Summary',
         '#Args\t{}'.format(vars(args))
@@ -100,13 +99,13 @@ def main():
             x = x,
             make_plan = make_plan,
             format_x_elm = '{elm:>2}',
-            format_init = '{i:>6}\t{plan_value:12.8f}\t{plan_log}',
-            format_calc = '{t:>6}\t{plan_value:12.8f}\t{plan_log}',
+            format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}',
+            format_calc = '{t:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}',
             output_filename = '{}/{:0>4}.txt'.format(args.output, i_run) if args.n_run > 1 else '{}.txt'.format(args.output)
         )
 
-        print_to_summary('{} {}'.format(
-            datetime.now().strftime("%Y%m%d%H%M%S"),
+        print_to_summary('{}{}'.format(
+            datetime.now().strftime("%Y%m%d%H%M%S\t"),
             c_last_plan_log
         ))
 

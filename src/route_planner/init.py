@@ -43,7 +43,7 @@ def _generate(args, *, path_data:route.PathData) -> List[List[Node]]:
             nn_rate = args.init_bld_nn_rate,
             bld_dist = bld_dist,
             cls_dist = cls_dist,
-            cls_each = cls_each
+            cls_each = args.init_cls_each
         )
 
     elif args.init_bld_method == 'cpnn':
