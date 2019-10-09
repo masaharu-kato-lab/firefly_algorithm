@@ -74,7 +74,7 @@ class Builder:
         # adjust total number
         c_total_number = sum(number_of_patterns.values())
         if c_total_number != total_number:
-            print('total number adjustment ({} to {})'.format(c_total_number, total_number))
+            # print('total number adjustment ({} to {})'.format(c_total_number, total_number))
             max_number_pattern = max(number_of_patterns, key=number_of_patterns.get)
             number_of_patterns[max_number_pattern] += total_number - c_total_number
 

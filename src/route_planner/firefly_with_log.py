@@ -3,25 +3,12 @@ import random
 import os
 import sys
 from datetime import datetime
+
 import firefly
+import log
 
 from typing import List, Dict, Tuple
 Node = Tuple[int, int]
-
-
-def current_time_text():
-    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
-
-def print_to_file(*args, filepath : str, datetime : bool = False):
-    with open(filepath, mode='a') as f:
-        for arg in args: print(arg, file=f)
-        if datetime: print('@' + current_time_text(), file=f)
-
-
-def print_to_stdout(*args, datetime : bool = False):
-    for arg in args: print(arg)
-    if datetime: print('@' + current_time_text())
-
 
 
 def run(args:object, *,
@@ -39,24 +26,24 @@ def run(args:object, *,
     today = datetime.now()
 
     if args.stdout:
-        print_to_log = print_to_stdout
+        print_to_log = log.print_to_stdout
 
     elif not args.result_only:
         output_filepath = output_filename.format(
             date = today.strftime("%Y%m%d"),
             time = today.strftime("%H%M%S"),
-            datetime = current_time_text(),
+            datetime = log.current_time_text(),
         )
-        os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
-        print_to_log = lambda *args, datetime = False: print_to_file(*args, filepath = output_filepath, datetime = datetime)
+        log.prepare_directory(output_filepath)
+        print_to_log = lambda *args, datetime = False: log.print_to_file(*args, filepath = output_filepath, datetime = datetime)
 
     else:
-        print_to_log = lambda *args : None
+        print_to_log = lambda *args, datetime = None: None
 
     if not args.result_only:
         # Output basic information
         print_to_log(
-            '#Program\tDiscrete Firefly Algorithm',
+            '#Program\tRoute Planner',
             '#Args\t{}'.format(vars(args))
         )
 
@@ -79,6 +66,7 @@ def run(args:object, *,
         prev_min_x = np.array([None] * len(nodes))
         prev_best_plan = None
         best_plan = None
+        last_plan_log = None
 
         if not args.result_only:
             print_to_log('#Iterations', datetime=True)
@@ -94,17 +82,16 @@ def run(args:object, *,
             make_plan    = make_plan,
             unsafe        = args.unsafe
         ):
-            if not np.array_equal(prev_best_plan, ret.best_plan):
+            if prev_best_plan is None or prev_best_plan.text != ret.best_plan.text:
                 
                 if not args.result_only:
-                    print_to_log(format_calc.format(
+                    last_plan_log = format_calc.format(
                         t          = ret.t,
-                        diff_type  = ' ' if prev_best_plan is None else 'v' if prev_best_plan > ret.best_plan else '^' if prev_best_plan < ret.best_plan else '=',
-                        is_min     = ' ' if prev_best_plan is None else '*' if best_plan > ret.best_plan else '.',
                         plan_value = ret.best_plan.value,
                         plan_log   = ret.best_plan.text,
                         time       = current_elasped_time
-                    ))
+                    )
+                    print_to_log(last_plan_log)
                 current_elasped_time = 0
 
                 if best_plan is None or best_plan > ret.best_plan:
@@ -128,5 +115,5 @@ def run(args:object, *,
     else:
         print(prev_best_plan.text)
 
-    return prev_best_plan
+    return prev_best_plan, last_plan_log
 

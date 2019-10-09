@@ -12,6 +12,7 @@ Node = Tuple[int, int]
 Time = float
 
 
+
 class PathData:
 
     def __init__(self, filepath : str):
