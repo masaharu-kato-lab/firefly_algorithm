@@ -25,7 +25,8 @@ def main():
     argp.add_argument('-dw'  , '--distance_weight' , type=float, default=1        , help='Weight value of distance on objective function')
     # argp.add_argument('-mind', '--min_distance'  , type=float, default=10000    , help='Assumed minimum distance of permutation')
     # argp.add_argument('-maxd', '--max_distance'  , type=float, default=20000    , help='Assumed maximum distance of permutation')
-    argp.add_argument('-t'   , '--n_iterate'       , type=int  , required=True    , help='Number of iteration')
+    argp.add_argument('-t'   , '--n_iterate'       , type=int  , default =100000  , help='Number of iteration')
+    argp.add_argument('-nis' , '--n_itr_steady'    , type=int  , default =100     , help='Number of iteration for steady convergence (and terminate) (optional)')
     argp.add_argument('-nr'  , '--n_run'           , type=int  , default=1        , help='Number of running')
     argp.add_argument('-ndr' , '--n_drones'        , type=int  , required=True    , help='Number of drones')
     argp.add_argument('-i'   , '--input'           , type=str  , default='res/pathdata/opu.pickle', help="Input pathdata pickle filepath")
@@ -61,6 +62,14 @@ def main():
         # max_distance = args.max_distance,
     )
 
+    if args.n_itr_steady:
+        continue_coef = lambda idv: idv.c_itr < args.n_iterate and (idv.c_itr - idv.best_itr) < args.n_itr_steady
+    else:
+        continue_coef = lambda idv: idv.c_itr < args.n_iterate
+
+
+
+
     best_plan = None
     today = datetime.now()
 
@@ -69,9 +78,6 @@ def main():
             date = today.strftime("%Y%m%d"),
             datetime = today.strftime("%Y%m%d%H%M%S"),
         )
-        
-    if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
-    if args.init_seed == None: args.init_seed = args.seed
 
     if args.n_run > 1:
         summary_filepath = '{}/summary.txt'.format(args.output)
@@ -86,6 +92,9 @@ def main():
     )
     print_to_summary('#Summary', datetime=True)
 
+    if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
+    if args.init_seed == None: args.init_seed = args.seed
+
     for i_run in range(args.n_run):
         
         x = init.generate(args, path_data = path_data)
@@ -97,6 +106,7 @@ def main():
             args,
             nodes = nodes,
             x = x,
+            continue_coef = continue_coef,
             make_plan = make_plan,
             format_x_elm = '{elm:>2}',
             format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}',

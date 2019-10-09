@@ -14,22 +14,23 @@ Node = Tuple[int, int]
 def run(*,
     x             : List[List[Node]], # Initial fireflies's permutation (list of list)
     nodes         : List[Node],       # List of nodes
-    make_plan    : callable,         # Objective function (originally means light intensity (luminosity) of fireflies)
+    make_plan     : callable,         # Objective function (originally means light intensity (luminosity) of fireflies)
     gamma         : float,            # gamma value
     alpha         : float,            # alpha value
     blocked_alpha : float = None,     # alpha value on fireflies are blocked (None for do nothing)
-    n_iterate     : int,              # Number of iteration
+    continue_coef : callable,         # Number of iteration
     unsafe        : bool = False      # Skip permutation validation if true
 ):
-
+    
     indexes = list(range(len(nodes)))
 
     plans = list(map(make_plan, x))
 
     ret = attrdict.AttrDict()
+    ret.best_plan = None
 
-    for t in range(n_iterate):
-
+    t = 0
+    while True:
         start_time = time.time()
 
         n_attracted = 0
@@ -67,12 +68,19 @@ def run(*,
                         
             best_id = np.argmin(plans)
 
-        ret.t = t
-        ret.best_id = best_id
-        ret.best_plan = plans[best_id]
-        ret.n_attracted = n_attracted
         ret.elapsed_time = time.time() - start_time
+        ret.c_n_attracted = n_attracted
+        ret.c_itr = t
 
+        if ret.best_plan is None or plans[best_id] < ret.best_plan:
+            ret.best_itr = t
+            ret.best_id = best_id
+            ret.best_plan = plans[best_id]
+            ret.best_n_attracted = n_attracted
+
+        if not continue_coef(ret): break
+
+        t += 1
         yield ret
 
 

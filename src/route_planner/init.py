@@ -107,7 +107,7 @@ def mix_generate(*,
         if i < n_init_random_build:
             x[i] = build.build_randomly(nodes)
         else:
-            x[i] = build_single_by_nearest_neighbor(clusters_nodes, bld_dist)
+            x[i] = build.build_single_with_nearest_neighbor(clusters_nodes, bld_dist)
 
     return x
 

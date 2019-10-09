@@ -11,10 +11,11 @@ from typing import List, Dict, Tuple
 Node = Tuple[int, int]
 
 
-def run(args:object, *,
-    nodes       : List[Node],
-    make_plan  : callable,
-    x           : List[List[Node]],
+def run(args, *,
+    nodes         : List[Node],
+    make_plan     : callable,
+    x             : List[List[Node]],
+    continue_coef : callable,
     format_x_elm: str,
     # legend_init : str,
     # legend_calc : str,
@@ -71,16 +72,14 @@ def run(args:object, *,
         # Set seed value of random
         np.random.seed(seed = args.seed)
         
-        
-        current_elasped_time = 0
-        prev_best_plan = None
-        best_plan = None
-        last_plan_log = None
+        # current_elasped_time = 0
 
         if not args.result_only:
             print_to_log('#Iterations', datetime=True)
 
         # print_to_log(legend_calc)
+        last_ret = None
+        last_plan_log = None
 
         # Run firefly algorithm
         for ret in firefly.run(
@@ -89,36 +88,34 @@ def run(args:object, *,
             gamma         = args.gamma,
             alpha         = args.alpha,
             blocked_alpha = args.blocked_alpha,
-            n_iterate     = args.n_iterate,
-            make_plan    = make_plan,
-            unsafe        = args.unsafe
+            make_plan     = make_plan,
+            unsafe        = args.unsafe,
+            continue_coef = continue_coef,
         ):
-            if prev_best_plan is None or prev_best_plan.text != ret.best_plan.text:
+            if ret.c_itr == ret.best_itr:
                 
                 if not args.result_only:
                     last_plan_log = format_calc.format(
-                        t    = ret.t,
+                        t    = ret.c_itr,
                         v    = ret.best_plan.value,
                         sv   = ret.best_plan.average_safety,
                         dv   = ret.best_plan.total_distance,
                         log  = ret.best_plan.text,
-                        time = current_elasped_time
+                        # time = current_elasped_time
                     )
                     print_to_log(last_plan_log)
-                current_elasped_time = 0
 
-                if best_plan is None or best_plan > ret.best_plan:
-                    best_plan = ret.best_plan
+                # current_elasped_time = 0
 
             if not args.quiet: # and not args.result_only:
                 print('.', file=sys.stderr, end='')
                 sys.stderr.flush()
 
-            prev_best_plan = ret.best_plan
-            current_elasped_time += ret.elapsed_time
+            last_ret = ret
+            # current_elasped_time += ret.elapsed_time
 
         if not args.result_only:
-            print_to_log('#END', datetime=True)
+            print_to_log('#END on iteration {}.)'.format(ret.c_itr), datetime=True)
             
         if not args.quiet:
             print('', file=sys.stderr)
@@ -126,7 +123,7 @@ def run(args:object, *,
     if not args.result_only:
         print_to_log('#EOF')
     else:
-        print(prev_best_plan.text)
+        print(last_ret.text)
 
-    return prev_best_plan, last_plan_log
+    return last_ret.best_plan, last_plan_log
 
