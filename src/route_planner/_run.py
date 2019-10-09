@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import random
 import datetime
+import distances
 
 import firefly_with_log
 import route
@@ -30,10 +31,11 @@ def main():
 
     argp.add_argument('-ibm' , '--init_building_method'  , type=str  , default ="random", choices=["random", "ann", "cpnn"], help="Building method in initialization ('random' for random, 'ann' (all nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor))")
     argp.add_argument('-icm' , '--init_clustering_method', type=str  , default ="none"  , choices=["none", "rm", "pam"], help="Clustering method in initialization (only works when `--init_building_method` is not 'random') ('none' for no clustering, 'rm' (random medoids) or 'pam' (partitioning around medoids))")
+    argp.add_argument('-idm' , '--init_distance_method'  , type=str  , default ="aster" , choices=["euclid", "aster", "angle"], help="Distance method in initialization (only works when clustering is available)")
     argp.add_argument('-inc' , '--init_n_cluster'        , type=int  , default =None    , help="Number of clusters (only works when `--init_clustering_method` is not 'none')")
     argp.add_argument('-ibnr', '--init_building_nn_rate' , type=float, default =0       , help="Rate of nodes using nearest neighbor in initialization building (only works when `--init_building_method` is 'ann')")
     argp.add_argument('-ice' , '--init_clustering_each'  , action='store_true'          , help="Do clustering before each building (only works when `--init_building_method` is 'random' or 'ann')")
-
+    
     argp.add_argument('-q' ,'--quiet'      , action='store_true'       , help='Do not show progress to stderr')
     argp.add_argument(      '--verbose'    , action='store_true'       , help='Whether to output details for debugging')
     argp.add_argument(      '--unsafe'     , action='store_true'       , help='Whether to check validation of permutation on each iteration')
@@ -41,6 +43,10 @@ def main():
     argp.add_argument(      '--stdout'     , action='store_true'       , help='Whether output results to stdout or not (output to automatically created file)')
     argp.add_argument(      '--result_only', action='store_true'       , help='Output only final results to stdout')
     args = argp.parse_args()
+
+
+    if args.init_seed == None: args.init_seed = random.randrange(2 ** 32 - 1)
+    if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
 
     # Load coordinates and nodes
     path_data = route.PathData(args.input)
@@ -57,6 +63,13 @@ def main():
         # max_distance = args.max_distance,
     )
 
+    if args.init_distance_method == "aster":
+        dist_func = path_data.distance
+    elif args.init_distance_method == "angle":
+        dist_func = lambda v1, v2: distances.angle_distance(v1, v2, path_data.home_poses[0])
+    elif args.init_distance_method == "euclid":
+        dist_func = distance.euclid
+
     best_plan = None
     today = datetime.datetime.now()
 
@@ -68,7 +81,7 @@ def main():
 
     for i_run in range(args.n_run):
         
-        x = init.generate(args, nodes = path_data.nodes, dist = path_data.distance)
+        x = init.generate(args, nodes = path_data.nodes, dist = dist_func)
         if not len(x): raise RuntimeError('Initialization failed.')
 
         make_plan = lambda perm : route.Plan(plan_prop, [perm])

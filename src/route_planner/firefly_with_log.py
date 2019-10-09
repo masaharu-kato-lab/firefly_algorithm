@@ -72,7 +72,6 @@ def run(args:object, *,
     if not args.init_only:
 
         # Set seed value of random
-        if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
         np.random.seed(seed = args.seed)
         
         

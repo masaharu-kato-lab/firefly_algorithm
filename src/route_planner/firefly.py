@@ -3,6 +3,7 @@ import copy
 import time
 import attrdict
 import distance
+import permutation
 # from types import List, Dict, Tuple, Node
 
 from typing import List, Dict, Tuple
@@ -50,7 +51,7 @@ def run(*,
                     x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
                     plans[i] = make_plan(x[i])
 
-                    if not unsafe and not is_valid_permutation(x[i], nodes):
+                    if not unsafe and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
 
         best_id = np.argmin(plans)
@@ -61,7 +62,7 @@ def run(*,
                     x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
                     plans[i] = make_plan(x[i])
 
-                    if not unsafe and not is_valid_permutation(x[i], nodes):
+                    if not unsafe and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
                         
             best_id = np.argmin(plans)
@@ -134,21 +135,3 @@ def alpha_step(perm:List[Node], indexes:List[int], alpha:int):
     #print('a1:', new_p)
     return new_perm
 
-
-# check permutation validity
-def is_valid_permutation(perm:List[Node], nodes:List[Node]):
-
-    nodes = copy.copy(nodes)
-
-    for node in perm:
-        # check if node is in nodes and not used yet
-        if(node in nodes):
-            nodes.remove(node)
-        else:
-            return False
-
-    # check if there are unuse nodes
-    if len(nodes):
-        return False
-
-    return True

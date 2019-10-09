@@ -1,19 +1,22 @@
 import clustering
 import build
 import numpy as np
+import random
 from typing import List, Dict, Tuple
 Node = Tuple[int, int]
 
-def generate(args, *, nodes:List[Node], dist:callable):
+import permutation
 
-    if args.init_seed == None: args.init_seed = random.randrange(2 ** 32 - 1)
+
+def generate(args, *, nodes:List[Node], dist:callable) -> List[List[Node]]:
+
     np.random.seed(seed = args.init_seed)
 
     if args.init_building_method == 'random':
-        return random_generate(nodes = nodes, n_indiv = args.n_indiv)
+        indivs = random_generate(nodes = nodes, n_indiv = args.n_indiv)
 
-    if args.init_building_method == 'ann':
-        return mix_generate(
+    elif args.init_building_method == 'ann':
+        indivs = mix_generate(
             nodes = nodes,
             n_indiv = args.n_indiv,
             clustering_method = args.init_clustering_method,
@@ -23,8 +26,8 @@ def generate(args, *, nodes:List[Node], dist:callable):
             clustering_each = args.init_clustering_each
         )
 
-    if args.init_building_method == 'cpnn':
-        return cluster_patterned_generate(
+    elif args.init_building_method == 'cpnn':
+        indivs = cluster_patterned_generate(
             nodes = nodes,
             n_indiv = args.n_indiv,
             clustering_method = args.init_clustering_method,
@@ -32,8 +35,17 @@ def generate(args, *, nodes:List[Node], dist:callable):
             dist = dist,
         )
 
+    else:
+        raise RuntimeError('Unknown initial building method.')
+
     
-    raise RuntimeError('Unknown initial building method.')
+#    if not all([permutation.is_valid(indiv, nodes) for indiv in indivs]):
+#        raise RuntimeError('Invalid individuals.')
+    for i, indiv in enumerate(indivs):
+        if not permutation.is_valid(indiv, nodes):
+            raise RuntimeError('Invalid individuals.')
+
+    return indivs
 
 
 
