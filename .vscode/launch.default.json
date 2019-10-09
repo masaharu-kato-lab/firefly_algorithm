@@ -2,36 +2,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "_init_bench.py",
-            "program": "${workspaceFolder}/src/discrete/_init_bench.py",
-            "args":[
-                "-n", "100"
-            ],
+            "name": "Python: Current File",
             "type": "python",
             "request": "launch",
+            "program": "${file}",
             "console": "integratedTerminal"
         },
         {
-            "name": "_run_opu.py",
-            "program": "${workspaceFolder}/src/discrete/_run_opu.py",
+            "name": "route_planning/_run.py",
+            "program": "${workspaceFolder}/src/route_planner/_run.py",
             "args":[
-                "-n", "93",
-                "-g", "0.01502",
-                "-a", "6.0",
-                "-ba", "6.0",
-                "-e", "0.1",
-                "-t", "1000",
-                "-d", "2",
-                "-u", "0",
-                "-i", "knn",
-                "-k", "2",
-                "-s", "12345678",
-                "-is", "12345678",
-                "-fnr"
+                "--n_run", "10",
+                "--n_indiv", "50",
+                "--gamma", "0.1",
+                "--alpha", "4.0",
+                "--blocked_alpha", "4.0",
+                "--n_iterate", "200",
+                "--n_drones", "4",
+                "--init_cls_method", "rm",
+                "--init_bld_method", "cpnn",
+                "--init_cls_dist"  , "angle",
+                "--init_bld_dist"  , "aster",
+                "--init_n_cls"     , "4"    ,
             ],
             "type": "python",
             "request": "launch",
             "console": "integratedTerminal"
-        },
+        }
     ]
 }

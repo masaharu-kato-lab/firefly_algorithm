@@ -2,86 +2,91 @@ import numpy as np
 import copy
 import time
 import attrdict
+import distance
 import permutation
+# from types import List, Dict, Tuple, Node
+
+from typing import List, Dict, Tuple
+Node = Tuple[int, int]
+
 
 # Firefly algorithm calculation class
 def run(*,
-    x             : list = None,  # Initial fireflies's permutation (list of list)
-    number        : int  = None,  # Number of fireflies (used when x is None, otherwise ignored)
-    nodes         : list ,        # List of node names
-    I             : callable,     # Objective Function (Originally means light intensity of fireflies)
-    distance      : callable,     # Distance Function (calcs distance between two positions)
-    gamma         : float,        # gamma value
-    alpha         : float,        # alpha value
-    blocked_alpha : float = None, # alpha value on fireflies are blocked (None for do nothing)
-    n_gen         : int,          # Number of generation
-    seed          : int,          # Random seed
-    unsafe        : bool = False  # Whether to check validation of permutation on each iteration
+    x             : List[List[Node]], # Initial fireflies's permutation (list of list)
+    nodes         : List[Node],       # List of nodes
+    make_plan     : callable,         # Objective function (originally means light intensity (luminosity) of fireflies)
+    gamma         : float,            # gamma value
+    alpha         : float,            # alpha value
+    blocked_alpha : float = None,     # alpha value on fireflies are blocked (None for do nothing)
+    continue_coef : callable,         # Number of iteration
+    unsafe        : bool = False      # Skip permutation validation if true
 ):
-
+    
     indexes = list(range(len(nodes)))
 
-    if x == None:
-        x = [0] * number
-        for i in range(len(x)):
-            x[i] = np.random.permutation(nodes)
-
-    Ix = list(map(I, x))
+    plans = list(map(make_plan, x))
 
     ret = attrdict.AttrDict()
+    ret.best_plan = None
 
-    for t in range(n_gen):
-
+    t = 0
+    while True:
         start_time = time.time()
 
         n_attracted = 0
 
-        sorted_id = np.argsort(Ix)
+        sorted_id = np.argsort(plans)
         x = [x[i] for i in sorted_id]
-        Ix = [Ix[i] for i in sorted_id]
+        plans = [plans[i] for i in sorted_id]
 
         # Repeats for all combinations of fireflies
         for i in range(len(x)):
             for j in range(i):
 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
-                if Ix[i] > Ix[j]:
+                if plans[i] > plans[j]:
                     n_attracted += 1
 
-                    beta = 1 / (1 + gamma * distance(x[i], x[j]))
-                    new_beta_x = betaStep(x[i], x[j], nodes, indexes, beta)
-                    x[i] = alphaStep(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
-                    Ix[i] = I(x[i])
+                    beta = 1 / (1 + gamma * distance.hamming(x[i], x[j]))
+                    new_beta_x = beta_step(x[i], x[j], nodes, indexes, beta)
+                    x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
+                    plans[i] = make_plan(x[i])
 
-                    if not unsafe and not permutation.isValid(x[i], nodes):
+                    if not unsafe and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
 
-        min_id = np.argmin(Ix)
+        best_id = np.argmin(plans)
 
         if n_attracted == 0 and blocked_alpha != None:
             for i in range(len(x)):
-                if(i != min_id):
-                    x[i] = alphaStep(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
-                    Ix[i] = I(x[i])
+                if(i != best_id):
+                    x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
+                    plans[i] = make_plan(x[i])
 
-                    if not unsafe and not permutation.isValid(x[i], nodes):
+                    if not unsafe and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
                         
-            min_id = np.argmin(Ix)
+            best_id = np.argmin(plans)
 
-        ret.t = t
-        ret.min_id = min_id
-        ret.min_x  = x[min_id]
-        ret.min_Ix = Ix[min_id]
-        ret.n_attracted = n_attracted
         ret.elapsed_time = time.time() - start_time
+        ret.c_n_attracted = n_attracted
+        ret.c_itr = t
 
+        if ret.best_plan is None or plans[best_id] < ret.best_plan:
+            ret.best_itr = t
+            ret.best_id = best_id
+            ret.best_plan = plans[best_id]
+            ret.best_n_attracted = n_attracted
+
+        if not continue_coef(ret): break
+
+        t += 1
         yield ret
 
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)
-def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
+def beta_step(perm1:List[Node], perm2:List[Node], nodes:List[Node], indexes:List[int], beta:float):
 
     perm12 = [None] * len(perm1)
     empty_nodes   = copy.copy(nodes)
@@ -111,7 +116,7 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
     if(len(empty_nodes)):
 
         # fill empty indexes randomly
-        shuffled_empty_nodes = np.random.permutation(list(empty_nodes))
+        shuffled_empty_nodes = [empty_nodes[i] for i in np.random.permutation(len(empty_nodes))]
         for i, perm12_i in enumerate(empty_indexes):
             perm12[perm12_i] = shuffled_empty_nodes[i]
 
@@ -121,7 +126,7 @@ def betaStep(perm1:list, perm2:list, nodes:list, indexes:list, beta:float):
 
 
 # Alpha step (randomly swap nodes in permutation based on alpha value)
-def alphaStep(perm:list, indexes:list, alpha:int):
+def alpha_step(perm:List[Node], indexes:List[int], alpha:int):
 
     if(alpha <= 1): return perm
 

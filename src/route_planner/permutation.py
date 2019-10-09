@@ -1,7 +1,9 @@
 import copy
+from typing import List, Tuple
+Node = Tuple[int, int]
 
-# check validity
-def isValid(perm:list, nodes:list):
+# check permutation validity
+def is_valid(perm:List[Node], nodes:List[Node]) -> bool:
 
     nodes = copy.copy(nodes)
 

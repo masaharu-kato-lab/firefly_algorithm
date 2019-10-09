@@ -4,4 +4,6 @@
     "files.exclude": {
         "**/__pycache__": true
     },
+    "python.linting.enabled": true,
+    "python.envFile": "${workspaceFolder}/.env"
 }
