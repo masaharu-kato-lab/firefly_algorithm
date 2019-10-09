@@ -1,54 +1,22 @@
 import numpy as np
 import copy
 import random
-# from types import List, Dict, Tuple, Node
 
 from typing import List, Dict, Tuple
 Node = Tuple[int, int]
 
 
-def generate(*,
-    nodes:List[Node],
-    n_firefly:int,
-    clustering_method:str,
-    n_cluster:int,
-    nn_rate:float,
-    dist_func:callable
-):
+# get function (lambda) from clustering method name
+def get_function(*, method:str, nodes:List[Node], n_cluster:int, dist:callable) -> callable:
 
-    clustering_function = get_clustering_function(
-        method = clustering_method,
-        nodes = nodes,
-        n_cluster = n_cluster,
-        dist_func = dist_func,
-    )
-
-    n_init_random_build = n_firefly * (1.0 - nn_rate)
-
-    x = [0] * n_firefly
-
-    for i in range(len(x)):
-
-        clusters_nodes = clustering_function()
-
-        if i < n_init_random_build:
-            x[i] = build_randomly(nodes)
-        else:
-            x[i] = build_single_by_nearest_neighbor(clusters_nodes, dist_func)
-
-    return x
-
-
-def get_clustering_function(*, method:str, nodes:List[Node], n_cluster:int, dist_func:callable):
-
-    if method == None:
+    if method == 'none':
         return lambda: no_clustering(nodes)
 
     elif method == 'rm':
-        return lambda: random_medoids(nodes, n_cluster, dist_func)
+        return lambda: random_medoids(nodes, n_cluster, dist)
 
     elif method == 'pam':
-        return lambda: partitioning_around_medoids(nodes, n_cluster, dist_func)
+        return lambda: partitioning_around_medoids(nodes, n_cluster, dist)
 
     else:
         raise RuntimeError('Unknown method name.')
@@ -110,34 +78,4 @@ def partitioning_around_medoids(nodes:List[Node], n_cluster:int, dist:callable):
 
     return clusters_nodes
 
-    
-def build_single_by_nearest_neighbor(clusters_nodes:List[List[Node]], dist_func:callable, nn_n_random:int = 1):
-    ordered_nodes = []
-    for nodes in clusters_nodes:
-        ordered_nodes.extend(build_by_nearest_neighbor(nodes, dist_func, nn_n_random))
-    return ordered_nodes
-
-
-def build_by_nearest_neighbor(nodes:List[Node], dist:callable, nn_n_random:int = 1):
-
-    ordered_nodes = []
-    remain_nodes = copy.copy(nodes)
-    last_node = None
-
-    for i_itr in range(len(nodes)):
-
-        if i_itr < nn_n_random:
-            min_id = np.random.choice(range(len(remain_nodes)))
-        else:
-            min_id = np.argmin([dist(last_node, node) for node in remain_nodes])
-        
-        last_node = remain_nodes[min_id]
-        ordered_nodes.append(last_node)
-        remain_nodes.pop(min_id)
-
-    return ordered_nodes
-
-
-def build_randomly(nodes:List[Node]):
-    return [nodes[i] for i in np.random.permutation(len(nodes))]
 

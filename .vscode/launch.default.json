@@ -2,20 +2,26 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "route_planning/_run.py",
-            "program": "${workspaceFolder}/src/route_planning/_run.py",
+            "program": "${workspaceFolder}/src/route_planner/_run.py",
             "args":[
-                "--n_firefly", "100",
+                "--n_indiv", "100",
                 "--gamma", "0.1",
                 "--alpha", "4.0",
                 "--blocked_alpha", "4.0",
-                "--n_iterate", "500",
+                "--n_iterate", "200",
                 "--n_drones", "4",
-                "--safety_weight", "0.5",
                 "--init_seed", "12345678",
-                "--init_clustering", "rm",
+                "--init_clustering_method", "rm",
+                "--init_building_method"  , "random",
                 "--init_n_cluster", "4",
-                "--init_nn_rate", "0.8",
                 "--seed", "12345678"
             ],
             "type": "python",

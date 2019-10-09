@@ -108,16 +108,18 @@ class PlanProperty:
         path_data:PathData,
         drone_prop:DroneProperty,
         n_drones:int,
-        safety_weight:float, # weight of uncertainly (compare with distance) (Real number between 0.0 and 1.0)
-        min_distance:float, # Assumed minimum distance,
-        max_distance:float, # Assumed maximum distance,
+        safety_weight:float, # weight of uncertainly
+        distance_weight:float, # weight of distance
+        # min_distance:float, # Assumed minimum distance,
+        # max_distance:float, # Assumed maximum distance,
     ):
         self.path_data = path_data
         self.drone_prop = drone_prop
         self.n_drones = n_drones
         self.safety_weight = safety_weight
-        self.min_distance = min_distance
-        self.max_distance = max_distance
+        self.distance_weight = distance_weight
+        # self.min_distance = min_distance
+        # self.max_distance = max_distance
 
 
 @total_ordering
@@ -131,28 +133,28 @@ class Plan:
 
         last_visit_time_on_nodes = {}
         i_drone = 0
-        log = ''
+        text = ''
 
         for nodes in self.clusters_nodes:
             
-            log += '['
+            text += '['
             remain_nodes = copy.copy(nodes)
 
             while len(remain_nodes):
                 drone = self.drones[i_drone]
-                log += '|{}>'.format(i_drone)
+                text += '|{}>'.format(i_drone)
 
                 while len(remain_nodes):
                     node = remain_nodes[0]
                     if not drone.try_move_to(node): break
                     last_visit_time_on_nodes[node] = drone.elapsed_time
-                    log += '{:>2} '.format(nodes_to_index[node])
+                    text += '{:>2} '.format(nodes_to_index[node])
                     remain_nodes.pop(0)
                         
                 drone.return_home()
                 i_drone = (i_drone + 1) % props.n_drones
 
-            log += ']'
+            text += ']'
 
 
 
@@ -162,8 +164,8 @@ class Plan:
         self.average_safety = sum(safety_on_nodes) / len(safety_on_nodes)
 
     #   normalized_distance = ((sum_distance - distance_range.start) / (distance_range.stop - distance_range.start))
-        self.value = props.safety_weight * (1.0 - self.average_safety) + (1.0 - props.safety_weight) * self.total_distance
-        self.log = log
+        self.value = props.safety_weight * (1.0 - self.average_safety) + props.distance_weight * self.total_distance
+        self.text = text
 
 
     def __lt__(self, plan):

@@ -64,7 +64,7 @@ def run(args:object, *,
 
         for i, cx in enumerate(x):
             i_cx = make_plan(cx)
-            print_to_log(format_init.format(i = i, plan_value = i_cx.value, plan_log = i_cx.log))
+            print_to_log(format_init.format(i = i, plan_value = i_cx.value, plan_log = i_cx.text))
 
         print_to_log('#END', datetime=True)
 
@@ -103,7 +103,7 @@ def run(args:object, *,
                         diff_type  = ' ' if prev_best_plan is None else 'v' if prev_best_plan > ret.best_plan else '^' if prev_best_plan < ret.best_plan else '=',
                         is_min     = ' ' if prev_best_plan is None else '*' if best_plan > ret.best_plan else '.',
                         plan_value = ret.best_plan.value,
-                        plan_log   = ret.best_plan.log,
+                        plan_log   = ret.best_plan.text,
                         time       = current_elasped_time
                     ))
                 current_elasped_time = 0
@@ -127,7 +127,7 @@ def run(args:object, *,
     if not args.result_only:
         print_to_log('#EOF')
     else:
-        print(prev_best_plan.log)
+        print(prev_best_plan.text)
 
     return prev_best_plan
 
