@@ -26,7 +26,7 @@ def main():
 
     path_data = route.PathData(args.input)
     calc_value = get_calc_value(args, path_data=path_data)
-    out_bin = AttrDict({'args': args, 'lasts':{}})
+    lasts = {}
 
     for seed in range(args.seed, args.seed + args.n_run):
 
@@ -36,11 +36,15 @@ def main():
 
         last_ret = firefly_with_log.run(args, path_data = path_data, calc_value = calc_value)
         summary_file.write('{:0>10}\t{}\t{:>6}\t{}'.format(seed, datetime.now().strftime("%Y%m%d%H%M%S"), last_ret.c_itr, last_ret.plan_log)).flush()
-        out_bin[seed] = last_ret
+        lasts[args.seed] = last_ret
 
     if not args.no_binary_output:
+        out_bin = AttrDict()
+        out_bin.args = args
+        out_bin.lasts = lasts
         with open(args.output + '.pickle', mode='wb') as f:
             pickle.dump(out_bin, file = f)
+            
 
     return out_bin
 

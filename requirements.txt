@@ -1,4 +1,5 @@
-attrdict==2.0.1
-Distance==0.1.3
-numpy==1.16.4
-pkg-resources==0.0.0
+attrdict
+Distance
+numpy
+pkg-resources
+matplotlib
