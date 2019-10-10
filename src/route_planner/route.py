@@ -103,7 +103,7 @@ class Drone:
         self.move_to(self.props.home_pos)
 
 
-class PlanProperty:
+class PlanGenerator:
 
     def __init__(self, *,
         path_data:PathData,
@@ -111,22 +111,22 @@ class PlanProperty:
         n_drones:int,
         safety_weight:float, # weight of uncertainly
         distance_weight:float, # weight of distance
-        # min_distance:float, # Assumed minimum distance,
-        # max_distance:float, # Assumed maximum distance,
     ):
         self.path_data = path_data
         self.drone_prop = drone_prop
         self.n_drones = n_drones
         self.safety_weight = safety_weight
         self.distance_weight = distance_weight
-        # self.min_distance = min_distance
-        # self.max_distance = max_distance
+
+
+    def make(self, clusters_nodes):
+        return Plan(self, clusters_nodes)
 
 
 @total_ordering
 class Plan:
 
-    def __init__(self, props:PlanProperty, clusters_nodes:List[List[Node]]):
+    def __init__(self, props:PlanGenerator, clusters_nodes:List[List[Node]]):
         self.clusters_nodes = clusters_nodes
         self.drones = [Drone(props.drone_prop) for _ in range(props.n_drones)]
 
