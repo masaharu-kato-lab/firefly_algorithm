@@ -5,6 +5,9 @@ import random
 import datetime
 import distances
 from datetime import datetime
+import attrdict
+import pickle
+
 
 import firefly_with_log
 import route
@@ -32,7 +35,7 @@ def main():
     argp.add_argument('-nr'  , '--n_run'           , type=int  , default=1        , help='Number of running')
     argp.add_argument('-ndr' , '--n_drones'        , type=int  , required=True    , help='Number of drones')
     argp.add_argument('-i'   , '--input'           , type=str  , default='res/pathdata/opu.pickle', help="Input pathdata pickle filepath")
-    argp.add_argument('-o'   , '--output'          , type=str  , default =None    , help='Path for output log (Default for auto)')
+    argp.add_argument('-o'   , '--output'          , type=str  , default =None    , help='Path for output log (default: auto name)')
     argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="cpnn"  , choices=["rnn", "cpnn"], help="Building method in initialization, 'rnn' (mix of random generation and nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor)")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
     argp.add_argument('-ibdm' , '--init_bld_dist'  , type=str  , default ="aster" , choices=["euclid", "aster", "angle"], help="Distance method in initialization (only works when clustering is available)")
@@ -41,6 +44,7 @@ def main():
     argp.add_argument('-ibnr', '--init_bld_nn_rate', type=float, default =0       , help="Rate of nodes using nearest neighbor in initialization building (only works when `--init_bld_method` is 'rnn')")
     argp.add_argument('-ice' , '--init_cls_each'   , action='store_true'          , help="Do clustering before each building (only works when `--init_bld_method` is 'random' or 'ann')")
     argp.add_argument('-sp'  ,'--show_progress'    , action='store_true'          , help='Show progress to stderr')
+    argp.add_argument('-ob'  , '--output_binary'   , action='store_true'          , help='Whether to output binary (pickle) file')
     argp.add_argument(        '--verbose'          , action='store_true'          , help='Whether to output details for debugging')
     argp.add_argument(        '--unsafe'           , action='store_true'          , help='Whether to check validation of permutation on each iteration')
     argp.add_argument(        '--init_only'        , action='store_true'          , help='Run only initialization')
@@ -112,6 +116,8 @@ def main():
         args.seed = seed
         args.init_seed = (seed - args.seed) + args.init_seed
 
+        output_filename_no_ext = '{}/{}'.format(args.output, today.strftime("%Y%m%d_%H%M%S_%f")) if args.n_run > 1 else args.output
+
         last_ret = firefly_with_log.run(
             args,
             nodes = nodes,
@@ -121,7 +127,7 @@ def main():
             format_x_elm = '{elm:>2}',
             format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}',
             format_calc = '{t:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}',
-            output_filename = '{}/{:0>10}.txt'.format(args.output, seed) if args.n_run > 1 else '{}.txt'.format(args.output)
+            output_filename = output_filename_no_ext + '.txt'
         )
 
         print_to_summary('{:0>10}\t{}\t{:>6}\t{}'.format(
@@ -133,6 +139,16 @@ def main():
 
         if best_plan is None or last_ret.best_plan < best_plan:
             best_plan = last_ret.best_plan
+
+        if args.output_binary:
+            out_bin = attrdict.AttrDict()
+            out_bin.args = args
+            out_bin.last = last_ret
+
+            with open(output_filename_no_ext + '.pickle', mode='wb') as f:
+                pickle.dump(out_bin, file = f)
+
+        
 
 
     print_to_summary('#END', datetime=True)
