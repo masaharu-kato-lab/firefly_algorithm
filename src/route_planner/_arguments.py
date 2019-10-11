@@ -53,9 +53,13 @@ def parse():
     if args.init_cls_dist is None: args.init_cls_dist = 'aster'
     if args.init_bld_dist is None: args.init_bld_dist = 'aster'
 
+    today = datetime.now()
+    args.start_date = today.strftime("%Y%m%d")
+    args.start_time = today.strftime("%H%M%S")
+    args.start_microsec = today.strftime("%f")
+
     if not args.output:
-        today = datetime.now()
-        args.output = 'out/{date}/{datetime}'.format(date = today.strftime("%Y%m%d"), datetime = today.strftime("%Y%m%d%H%M%S"))
+        args.output = 'out/{}/{}_{}_{}'.format(args.start_date, args.start_date, args.start_time, args.start_microsec)
 
     if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
     if args.init_seed == None: args.init_seed = args.seed
