@@ -13,15 +13,16 @@ Value = Any
 
 # Firefly algorithm calculation class
 def run(*,
-    init_indivs   : List[Indiv],        # Initial individuals permutation
-    init_val_of   : List[Value] = None, # Initial individuals evaluation value (optional)
-    nodes         : List[Node],         # List of nodes
-    calc_value    : callable,           # Objective function (originally means light intensity (luminosity) of fireflies)
-    gamma         : float,              # gamma value
-    alpha         : float,              # alpha value
-    blocked_alpha : float = None,       # alpha value on fireflies are blocked (None to equal to normal alpha)
-    continue_coef : callable,           # Number of iteration
-    skip_check    : bool = False        # Skip permutation validation if true
+    init_indivs     : List[Indiv],        # Initial individuals permutation
+    init_val_of     : List[Value] = None, # Initial individuals evaluation value (optional)
+    nodes           : List[Node],         # List of nodes
+    calc_value      : callable,           # Objective function (originally means light intensity (luminosity) of fireflies)
+    gamma           : float,              # gamma value
+    alpha           : float,              # alpha value
+    blocked_alpha   : float = None,       # alpha value on fireflies are blocked (None to equal to normal alpha)
+    continue_coef   : callable,           # Number of iteration
+    skip_check      : bool = False,       # Skip permutation validation if true
+    use_jordan_alpha: bool                # Use jordan's method in alpha step
 ):
     
     if blocked_alpha is None: blocked_alpha = alpha
@@ -55,7 +56,7 @@ def run(*,
 
                     beta = 1 / (1 + gamma * distance.hamming(x[i], x[j]))
                     new_beta_x = beta_step(x[i], x[j], nodes, indexes, beta)
-                    x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0))
+                    x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0), use_jordan_alpha)
                     val_of[i] = calc_value(x[i])
 
                     if not skip_check and not permutation.is_valid(x[i], nodes):
@@ -66,7 +67,7 @@ def run(*,
         if n_attracted == 0:
             for i in range(len(x)):
                 if(i != best_id):
-                    x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0))
+                    x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0), use_jordan_alpha)
                     val_of[i] = calc_value(x[i])
 
                     if not skip_check and not permutation.is_valid(x[i], nodes):
@@ -133,7 +134,7 @@ def beta_step(perm1:Indiv, perm2:Indiv, nodes:List[Node], indexes:List[int], bet
 
 
 # Alpha step (randomly swap nodes in permutation based on alpha value)
-def alpha_step(perm:Indiv, indexes:List[int], alpha:int):
+def alpha_step(perm:Indiv, indexes:List[int], alpha:int, use_jordan_alpha:bool):
 
     if(alpha <= 1): return perm
 
@@ -145,8 +146,10 @@ def alpha_step(perm:Indiv, indexes:List[int], alpha:int):
     # shuffle target indexes
     new_perm = copy.copy(perm)
     for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
-        #new_perm[shuffled_index] = perm[index]
-        new_perm[index], new_perm[shuffled_index] = new_perm[shuffled_index], new_perm[index]
+        if use_jordan_alpha:
+            new_perm[index], new_perm[shuffled_index] = new_perm[shuffled_index], new_perm[index]
+        else:
+            new_perm[shuffled_index] = perm[index]
 
 
     #print('a1:', new_p)

@@ -44,9 +44,6 @@ def main():
         out_bin.lasts = lasts
         with open(args.output + '.pickle', mode='wb') as f:
             pickle.dump(out_bin, file = f)
-            
-
-    return out_bin
 
 
 
