@@ -62,15 +62,16 @@ def optimize(
 
     # Run firefly algorithm
     for ret in firefly.run(
-        nodes         = nodes,
-        init_indivs   = init_indivs,
-        init_val_of   = init_val_of,
-        calc_value    = calc_value,
-        continue_coef = make_continue_coef(args),
-        gamma         = args.gamma,
-        alpha         = args.alpha,
-        blocked_alpha = args.blocked_alpha,
-        skip_check    = args.skip_check,
+        nodes            = nodes,
+        init_indivs      = init_indivs,
+        init_val_of      = init_val_of,
+        calc_value       = calc_value,
+        continue_coef    = make_continue_coef(args),
+        gamma            = args.gamma,
+        alpha            = args.alpha,
+        blocked_alpha    = args.blocked_alpha,
+        skip_check       = args.skip_check,
+        use_jordan_alpha = args.use_jordan_alpha,
     ):
         if ret.c_itr == ret.best_itr:
             

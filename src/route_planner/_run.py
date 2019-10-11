@@ -44,16 +44,13 @@ def main():
         out_bin.lasts = lasts
         with open(args.output + '.pickle', mode='wb') as f:
             pickle.dump(out_bin, file = f)
-            
-
-    return out_bin
 
 
 
 def get_summary_file_writer(args):
 
     if args.n_run > 1:
-        summary_file = log.FileWriter(filepath='{}/summary.txt'.format(args.output))
+        summary_file = log.FileWriter(filepath='{}/summary_{}_{}_{}.txt'.format(args.output, args.start_date, args.start_time, args.start_microsec))
     else:
         summary_file = log.FileWriter(no_out=True)
 

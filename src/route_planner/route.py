@@ -17,10 +17,11 @@ class PathData:
 
     def __init__(self, filepath : str):
         with open(filepath, "rb") as f:
-            self.mapper = pickle.load(f)
+            mapper = pickle.load(f)
 
-        self.nodes = self.mapper.default_targets
-        self.home_poses = self.mapper.starting_point
+        self.nodes = mapper.default_targets
+        self.home_poses = mapper.starting_point
+        self.distance_of = {node_pair:path[1] for node_pair, path in mapper.paths.items()}
 
         self.nodes_to_index = {}
         for i, node in enumerate(self.nodes):
@@ -30,7 +31,7 @@ class PathData:
     # Calc distance of two points
     def distance(self, c1:Node, c2:Node) -> float:
         if c1 == c2: return 0
-        return self.mapper.paths[(c1, c2)][1]
+        return self.distance_of[(c1, c2)]
 
 
     # Calc distance of coords

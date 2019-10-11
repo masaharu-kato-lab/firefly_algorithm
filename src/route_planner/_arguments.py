@@ -31,6 +31,7 @@ def parse():
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
     argp.add_argument('-ibnr', '--init_bld_nn_rate', type=float, default =0       , help="Rate of nodes using nearest neighbor in initialization building (only works when `--init_bld_method` is 'rnn')")
     argp.add_argument('-ice' , '--init_cls_each'   , action='store_true'          , help="Do clustering before each building (only works when `--init_bld_method` is 'rnn')")
+    argp.add_argument('-uja' , '--use_jordan_alpha', action='store_true'          , help="Use jordan's method in alpha step")
     argp.add_argument('-sp'  ,'--show_progress'    , action='store_true'          , help='Show progress to stderr')
     argp.add_argument('-nlo' ,'--no_log_output'    , action='store_true'          , help='Do not output log (text) file')
     argp.add_argument('-nbo' ,'--no_binary_output' , action='store_true'          , help='Do not output binary (pickle) file')
@@ -52,9 +53,13 @@ def parse():
     if args.init_cls_dist is None: args.init_cls_dist = 'aster'
     if args.init_bld_dist is None: args.init_bld_dist = 'aster'
 
+    today = datetime.now()
+    args.start_date = today.strftime("%Y%m%d")
+    args.start_time = today.strftime("%H%M%S")
+    args.start_microsec = today.strftime("%f")
+
     if not args.output:
-        today = datetime.now()
-        args.output = 'out/{date}/{datetime}'.format(date = today.strftime("%Y%m%d"), datetime = today.strftime("%Y%m%d%H%M%S"))
+        args.output = 'out/{}/{}_{}_{}'.format(args.start_date, args.start_date, args.start_time, args.start_microsec)
 
     if args.seed == None: args.seed = random.randrange(2 ** 32 - 1)
     if args.init_seed == None: args.init_seed = args.seed
