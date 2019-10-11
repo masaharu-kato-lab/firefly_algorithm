@@ -145,8 +145,8 @@ def alpha_step(perm:Indiv, indexes:List[int], alpha:int):
     # shuffle target indexes
     new_perm = copy.copy(perm)
     for shuffled_index, index in zip(shuffled_target_indexes, target_indexes):
-        new_perm[shuffled_index] = perm[index]
-        #new_perm[index], new_perm[shuffled_index] = new_perm[shuffled_index], new_perm[index]
+        #new_perm[shuffled_index] = perm[index]
+        new_perm[index], new_perm[shuffled_index] = new_perm[shuffled_index], new_perm[index]
 
 
     #print('a1:', new_p)
