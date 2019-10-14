@@ -42,14 +42,16 @@ def main():
         out_bin = AttrDict()
         out_bin.args = args
         out_bin.lasts = lasts
-        with open(args.output + '.pickle', mode='wb') as f:
+        path = args.binary_output if args.binary_output is not None else args.output + '.pickle'
+        log.prepare_directory(path)
+        with open(path, mode='wb') as f:
             pickle.dump(out_bin, file = f)
 
 
 
 def get_summary_file_writer(args):
 
-    if args.n_run > 1:
+    if args.n_run > 1 and not args.no_log_output:
         summary_file = log.FileWriter(filepath='{}/summary_{}_{}_{}.txt'.format(args.output, args.start_date, args.start_time, args.start_microsec))
     else:
         summary_file = log.FileWriter(no_out=True)
