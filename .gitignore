@@ -114,5 +114,8 @@ out/
 logs/
 nohup.out
 
+# directory for json file for parun
+/parun/
+
 # secret folders and files
 notes/

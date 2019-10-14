@@ -21,7 +21,8 @@ def parse():
     argp.add_argument('-nr'  , '--n_run'           , type=int  , default=1        , help='Number of running')
     argp.add_argument('-ndr' , '--n_drones'        , type=int  , required=True    , help='Number of drones')
     argp.add_argument('-i'   , '--input'           , type=str  , default='res/pathdata/opu.pickle', help="Input pathdata pickle filepath")
-    argp.add_argument('-o'   , '--output'          , type=str  , default =None    , help='Path for output log (default: auto name)')
+    argp.add_argument('-o'   , '--output'          , type=str  , default =None    , help='Path for output log (None for default)')
+    argp.add_argument('-bo'  , '--binary_output'   , type=str  , default =None    , help='Binary output path (None for default)')
     argp.add_argument('-fmi' , '--format_init'     , type=str  , default =None    , help='Format text to display initial individuals')
     argp.add_argument('-fmt' , '--format_itr'      , type=str  , default =None    , help='Format text to display individuals while iteration')
     argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="cpnn"  , choices=["rnn", "cpnn"], help="Building method in initialization, 'rnn' (mix of random generation and nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor)")
@@ -49,6 +50,9 @@ def parse():
 
     if args.init_bld_method != 'rnn' and (args.init_cls_each or args.init_bld_nn_rate):
         raise RuntimeError("--init_bld_method` must be 'rnn'.")
+
+    if args.binary_output is not None and args.no_binary_output:
+        raise RuntimeError("`--no_binary_output` specified, but `--binary_output` specified.")
 
     if args.init_cls_dist is None: args.init_cls_dist = 'aster'
     if args.init_bld_dist is None: args.init_bld_dist = 'aster'
