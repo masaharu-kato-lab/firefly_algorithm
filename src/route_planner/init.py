@@ -32,8 +32,8 @@ def _generate(args, *, path_data:route.PathData) -> List[List[Node]]:
     # if bld_method == 'random':
     #     return random_generate(nodes = path_data.nodes, n_indiv = args.n_indiv)
 
-    bld_dist = distances.get_func(args.init_bld_dist, path_data = path_data, w_angle=args.init_bld_dist_w)
-    cls_dist = distances.get_func(args.init_cls_dist, path_data = path_data, w_angle=args.init_cls_dist_w)
+    bld_dist = distances.get_func(args.init_bld_dist, path_data = path_data) # , w_angle=args.init_bld_dist_w
+    cls_dist = distances.get_func(args.init_cls_dist, path_data = path_data) # , w_angle=args.init_cls_dist_w
 
     if bld_method == 'rnn':
         return mix_generate(
