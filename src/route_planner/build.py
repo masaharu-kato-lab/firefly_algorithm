@@ -92,6 +92,13 @@ def build_single_with_nearest_neighbor(clusters_nodes:List[List[Node]], dist_fun
     return ordered_nodes
 
 
+def build_single_with_random(clusters_nodes:List[List[Node]]):
+    ordered_nodes = []
+    for nodes in clusters_nodes:
+        ordered_nodes.extend(build_randomly(nodes))
+    return ordered_nodes
+
+
 def build_with_nearest_neighbor(nodes:List[Node], dist:callable, nn_n_random:int = 1) -> List[Node]:
 
     ordered_nodes = []

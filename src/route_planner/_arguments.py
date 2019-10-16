@@ -27,8 +27,10 @@ def parse():
     argp.add_argument('-fmt' , '--format_itr'      , type=str  , default =None    , help='Format text to display individuals while iteration')
     argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="cpnn"  , choices=["rnn", "cpnn"], help="Building method in initialization, 'rnn' (mix of random generation and nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor)")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
-    argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None   , choices=["euclid", "aster", "angle"], help="Distance method in initialization")
-    argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None   , choices=["euclid", "aster", "angle"], help="Distance method in initialization (only works when clustering is available)")
+    argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
+    argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
+    # argp.add_argument('-ibdw', '--init_bld_dist_w' , type=float, default =None    , help="Weight of distance method in initial building (only works when `--init_bld_dist` is 'polar')")
+    # argp.add_argument('-icdw', '--init_cls_dist_w' , type=float, default =None    , help="Weight of distance method in initial clustering (only works when `--init_cls_dist` is 'polar')")
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
     argp.add_argument('-ibnr', '--init_bld_nn_rate', type=float, default =0       , help="Rate of nodes using nearest neighbor in initialization building (only works when `--init_bld_method` is 'rnn')")
     argp.add_argument('-ice' , '--init_cls_each'   , action='store_true'          , help="Do clustering before each building (only works when `--init_bld_method` is 'rnn')")
@@ -56,6 +58,13 @@ def parse():
 
     if args.init_cls_dist is None: args.init_cls_dist = 'aster'
     if args.init_bld_dist is None: args.init_bld_dist = 'aster'
+
+    # if args.init_bld_dist != 'polar' and args.init_bld_dist_w is not None:
+    #     raise RuntimeError("`--init_bld_dist_w` is not used when `--init_bld_dist` is not 'polar'")
+
+    # if args.init_cls_dist != 'polar' and args.init_cls_dist_w is not None:
+    #     raise RuntimeError("`--init_cls_dist_w` is not used when `--init_cls_dist` is not 'polar'")
+
 
     today = datetime.now()
     args.start_date = today.strftime("%Y%m%d")
