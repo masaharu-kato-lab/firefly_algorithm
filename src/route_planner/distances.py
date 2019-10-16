@@ -5,16 +5,23 @@ def get_func(name:str, *, path_data, w_angle=None):
 
     name = name.lower()
     
-    if name == "aster":
+    if name == 'aster':
         return path_data.distance
 
     vecs = path_data.nodes + [path_data.home_poses[0]]
+    origin = path_data.home_poses[0]
 
-    if name == "angle":
-        return get_precalced_func(lambda v1, v2: angle_distance(v1, v2, path_data.home_poses[0]), vecs)
+    if name == 'angle':
+        return get_precalced_func(lambda v1, v2: angle_distance(v1, v2, origin), vecs)
     
-    if name == "euclid":
+    if name == 'euclid':
         return get_precalced_func(euclid, vecs)
+
+    if name == 'polar':
+        if w_angle is None: raise RuntimeError ('weight of angle not specified.')
+        return get_precalced_func(lambda v1, v2: polar_distance(v1, v2, origin, w_angle=w_angle), vecs)
+
+    raise RuntimeError('Unknown distance function')
 
     
 
@@ -23,10 +30,12 @@ def get_precalced_func(dist_func:callable, vecs:list) -> callable:
     return lambda v1, v2: dists[(v1, v2)]
 
 
-def angle_radius_distance(v1, v2, origin, w_angle:float):
+def polar_distance(v1, v2, origin, *, w_angle):
     if v1 == v2: return 0
     _o = np.array(origin)
-    return w_angle * angle_distance(v1, v2, origin) + (1.0 - w_angle) * abs(euclid(v1, _o) - euclid(v2, _o))
+    _adist = angle_distance(v1, v2, origin)
+    if _adist is None: return None
+    return w_angle * _adist  + (1.0 - w_angle) * abs(euclid(v1, _o) - euclid(v2, _o))
 
 
 def angle_distance(v1, v2, origin):

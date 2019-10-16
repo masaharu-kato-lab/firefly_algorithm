@@ -15,7 +15,13 @@
                 "-ni", "93",
                 "-g", "0.01502",
                 "-a", "2.0",
-                "-nd", "4"
+                "-nd", "4",
+                "-s", "1",
+                "-uja",
+                "-icm", "rmed",
+                "-inc", "4",
+                "-icdm", "polar",
+                "-icdw", "0.5"
             ],
             "type": "python",
             "request": "launch",

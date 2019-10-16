@@ -15,9 +15,11 @@ def get_function(*, method:str, nodes:List[Node], n_cluster:int, dist:callable) 
         return lambda: no_clustering(nodes)
 
     elif method == 'rmed':
+        if n_cluster is None: raise RuntimeError('Number of cluster not specified.')
         return lambda: random_medoids(nodes, n_cluster, dist)
 
     elif method == 'pamed':
+        if n_cluster is None or dist is None: raise RuntimeError('Number of cluster or distance function not specified.')
         return lambda: partitioning_around_medoids(nodes, n_cluster, dist)
 
     else:
