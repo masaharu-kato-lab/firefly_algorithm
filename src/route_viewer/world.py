@@ -1,7 +1,10 @@
 import pickle
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import sys
+import os
 
+sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 
 class World:
 

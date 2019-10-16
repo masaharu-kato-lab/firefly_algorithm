@@ -6,12 +6,14 @@ import sys
 import os
 import json
 from world import World
-# sys.path.append(os.path.dirname(__file__) + '/../route_planner')
+
+sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 
 def main():
 
     argp = argparse.ArgumentParser(description='Route binary viewer')
     argp.add_argument('-i', '--input' , type=str, required=True, help='Input binary pickle file path')
+    argp.add_argument('-o', '--output', type=str, default=None, help='Output png image file path (None:default)')
     argp.add_argument('-mi', '--mapper_input', type=str, default='res/pathdata/opu.pickle', help='Input mapper pickle file path')
     argp.add_argument('-lg', '--show_legend', action='store_true', help='show legend')
     argp.add_argument('-lgx', '--legend_px', type=float, default=0.90, help='legend position x')
@@ -25,11 +27,12 @@ def main():
     with open(args.input, mode='rb') as f:
         out_bin = pickle.load(f)
 
-    output_dir = os.path.splitext(args.input)[0] + '_graph'
-    os.makedirs(output_dir, exist_ok=True)
+    if args.output is None:
+        args.output = os.path.splitext(args.input)[0] + '_graph/{seed}.png'
+        os.makedirs(os.path.dirname(args.output), exist_ok=True)
 
-    with open('{}/args.json'.format(output_dir), mode='w') as f:
-        json.dump(out_bin.args.__dict__, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(', ', ': '))
+    # with open('{}/args.json'.format(args.output), mode='w') as f:
+    #     json.dump(out_bin.args.__dict__, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(', ', ': '))
 
     for seed, last_ret in out_bin.lasts.items():
         print('seed:{}'.format(seed))
@@ -50,7 +53,7 @@ def main():
 
         if args.show_legend:
             plt.legend(bbox_to_anchor=(args.legend_px, args.legend_py), loc='center', borderaxespad=0, fontsize=args.legend_fontsize)
-        plt.savefig('{}/{}.png'.format(output_dir, seed))
+        plt.savefig(args.output.format(seed=seed))
         plt.close()
 
 
