@@ -14,7 +14,8 @@ def main():
 
     with open(args.input, mode='rb') as f:
         out_bin = pickle.load(f)
-        print(out_bin.args)
+    
+    print(out_bin.args)
 
 
 if __name__ == '__main__':
