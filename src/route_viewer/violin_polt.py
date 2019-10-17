@@ -14,25 +14,18 @@ def main():
     argp.add_argument('-o', '--output', type=str, default=None, help='Output figure image file path (None for display)')
     argp.add_argument('-nm', '--name', type=str, default=None, help='Name formatted text on each file')
     argp.add_argument('-t', '--title', type=str, default=None, help='Title text')
-    argp.add_argument('-ud', '--use_distance', action='store_true', help='Show distance as value')
-    argp.add_argument('-us', '--use_safety', action='store_true', help='Show safety as value')
+    argp.add_argument('-v', '--value', type=str, choices=['luminosity', 'distance', 'safety', 'iteration'], help='Value to show')
     argp.add_argument('-sx', '--size_x', type=float, default=12, help='Figure size x (inch)')
     argp.add_argument('-sy', '--size_y', type=float, default=8, help='Figure size y (inch)')
     argp.add_argument('-dpi', '--dpi', type=float, default=200, help='Figure DPI (pixel per inch)')
     args = argp.parse_args()
 
-    if args.use_distance and args.use_safety:
-        raise RuntimeError('`--use_distance` and `--use_safety` cannot specified at the same time.')
-
-    if args.use_distance:
-        get_value = lambda ret: ret.best_plan.total_distance
-        value_name = 'total distance'
-    elif args.use_safety:
-        get_value = lambda ret: ret.best_plan.average_safety
-        value_name = 'average safety'
-    else:
-        get_value = lambda ret: ret.best_plan.value
-        value_name = 'value'
+    get_value = {
+        'distance'  : lambda ret: ret.best_plan.total_distance,
+        'safety'    : lambda ret: ret.best_plan.average_safety,
+        'luminosity': lambda ret: ret.best_plan.value,
+        'iteration' : lambda ret: ret.best_itr
+    }[args.value]
 
     data = []
     names = []
@@ -54,7 +47,7 @@ def main():
     plt.figure(figsize=(args.size_x, args.size_y))
     plt.violinplot(list(reversed(data)), indexes, points=80, vert=False, widths=0.7, showextrema=True, showmedians=True)
     plt.yticks(indexes, list(reversed(names)))
-    plt.xlabel(value_name)
+    plt.xlabel(args.value)
     if args.title: plt.title(args.title)
 
     if args.output:

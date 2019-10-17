@@ -67,7 +67,7 @@ def partitioning_around_medoids(nodes:List[Node], n_cluster:int, dist:callable):
         best_medoids = None
         best_cost = None
         for i_cluster in range(n_cluster):
-            for node in clusters_nodes[1:]:
+            for node in clusters_nodes[i_cluster][1:]:
                 c_medoids = copy.copy(medoids)
                 c_medoids[i_cluster] = node
                 _, c_cost = medoids_cluster(nodes, c_medoids, dist)
