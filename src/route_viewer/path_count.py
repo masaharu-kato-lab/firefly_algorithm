@@ -16,7 +16,6 @@ def main():
 
     argp = argparse.ArgumentParser(description='Route binary viewer')
     argp.add_argument('-i', '--input' , nargs='*', type=str, required=True, help='Input binary pickle file path')
-    argp.add_argument('-f', '--files', nargs='*', type=str)
     argp.add_argument('-o', '--output' , type=str, default=None, help='Output figure file directory (None to display)')
     argp.add_argument('-mi', '--mapper_input', type=str, default='res/pathdata/opu.pickle', help='Input mapper pickle file path')
     argp.add_argument('-sw', '--standard_width', type=float, default=5.0, help='Standard line width of path')
