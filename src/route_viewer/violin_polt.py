@@ -14,7 +14,7 @@ def main():
     argp.add_argument('-o', '--output', type=str, default=None, help='Output figure image file path (None for display)')
     argp.add_argument('-nm', '--name', type=str, default=None, help='Name formatted text on each file')
     argp.add_argument('-t', '--title', type=str, default=None, help='Title text')
-    argp.add_argument('-v', '--value', type=str, choices=['luminosity', 'distance', 'safety', 'iteration'], help='Value to show')
+    argp.add_argument('-v', '--value', type=str, default='luminosity', choices=['luminosity', 'distance', 'safety', 'iteration'], help='Value to show')
     argp.add_argument('-sx', '--size_x', type=float, default=12, help='Figure size x (inch)')
     argp.add_argument('-sy', '--size_y', type=float, default=8, help='Figure size y (inch)')
     argp.add_argument('-dpi', '--dpi', type=float, default=200, help='Figure DPI (pixel per inch)')
