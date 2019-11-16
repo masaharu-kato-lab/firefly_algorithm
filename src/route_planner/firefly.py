@@ -26,10 +26,21 @@ def run(*,
     use_jordan_alpha: bool                # Use jordan's method in alpha step
 ) -> AttrDict:
     
+    if not init_indivs: raise RuntimeError('No individuals.')
+
     if blocked_alpha is None: blocked_alpha = alpha
 
     x = init_indivs
     val_of = init_val_of if init_val_of else list(map(calc_value, x))
+
+    state = AttrDict()
+    state.itr = 0
+    state.best_itr = 0
+    state.best_plan = val_of[np.argmin(val_of)]
+    state.n_updated = 0
+    state.elapsed_time = 0
+    state.n_attracted = 0
+    yield state
 
     indexes = list(range(len(nodes)))
     
