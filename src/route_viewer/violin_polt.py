@@ -2,7 +2,7 @@
 
 import pickle
 import argparse
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #type:ignore
 import sys
 import os
 sys.path.append(os.path.dirname(__file__) + '/../route_planner')
@@ -21,10 +21,10 @@ def main():
     args = argp.parse_args()
 
     get_value = {
-        'distance'  : lambda ret: ret.best_plan.total_distance,
-        'safety'    : lambda ret: ret.best_plan.average_safety,
-        'luminosity': lambda ret: ret.best_plan.value,
-        'iteration' : lambda ret: ret.best_itr
+        'distance'  : lambda state: state.best_plan.total_distance,
+        'safety'    : lambda state: state.best_plan.average_safety,
+        'luminosity': lambda state: state.best_plan.value,
+        'iteration' : lambda state: state.best_itr
     }[args.value]
 
     data = []
@@ -35,7 +35,7 @@ def main():
         with open(cinput, mode='rb') as f:
             out_bin = pickle.load(f)
 
-        data.append([get_value(last_ret) for last_ret in out_bin.lasts.values()])
+        data.append([get_value(last_state) for last_state in list(out_bin.states_by_seed.values())[-1]])
 
         if args.name is not None:
             names.append(args.name.format(**out_bin.args.__dict__))

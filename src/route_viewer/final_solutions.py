@@ -1,11 +1,12 @@
 #!env/bin/python
-import pickle
 import argparse
-import matplotlib.pyplot as plt
 import os
-import attrdict
-import os
+import pickle
 import sys
+
+from attrdict import AttrDict #type:ignore
+import matplotlib.pyplot as plt #type:ignore
+
 sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 
 def main():
@@ -31,10 +32,10 @@ def main():
         with open(cinput, mode='rb') as f:
             out_bin = pickle.load(f)
 
-        rets = out_bin.lasts.values()
+        last_states = [states[-1] for states in out_bin.states_by_seed.values()]
         plt.scatter(
-            [ret.best_itr for ret in rets],
-            [ret.best_plan.value for ret in rets],
+            [last_state.best_itr for last_state in last_states],
+            [last_state.best_plan.value for last_state in last_states],
             color=cmap(int(i % args.group_length)),
             marker=mmap[int(i // args.group_length)],
             label=os.path.splitext(os.path.basename(cinput))[0],
