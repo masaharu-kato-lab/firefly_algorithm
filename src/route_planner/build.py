@@ -1,7 +1,7 @@
 import itertools
-import numpy as np
+import numpy as np #type:ignore
 import copy
-from typing import Any, List, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 Node = Tuple[int, int]
 
 import nd_equation
@@ -9,7 +9,7 @@ import nd_equation
 class Builder:
     
     def __init__(self, *,
-        methods_func_dof:Dict[Any, Tuple[callable, int]], # dict(method, tuple(method lambda, degree of freedom)) 
+        methods_func_dof:Dict[Any, Tuple[Callable, int]], # dict(method, tuple(method lambda, degree of freedom)) 
         clusters_nodes:List[List[Node]]
     ):
         self.clusters_nodes  = clusters_nodes
@@ -33,7 +33,7 @@ class Builder:
 
 
     def build_with_pattern(self, pattern:List[Any]) -> List[Node]:
-        whole_nodes = []
+        whole_nodes:List[Node] = []
         for i, nodes in enumerate(self.clusters_nodes):
             whole_nodes.extend((self.func_of_methods[pattern[i]])(nodes))
         return whole_nodes
@@ -42,7 +42,7 @@ class Builder:
     # dof = degree of freedom (= number of random constructing)
     def calc_number_of_pattern(self, total_number:int) -> Dict[Any, int]:
 
-        dof_count = {}
+        dof_count:Dict[int, int] = {}
         dof_of_patterns = {}
 
         # count each dof
@@ -85,7 +85,7 @@ class Builder:
 
 
 
-def build_single_with_nearest_neighbor(clusters_nodes:List[List[Node]], dist_func:callable, nn_n_random:int = 1) -> List[Node]:
+def build_single_with_nearest_neighbor(clusters_nodes:List[List[Node]], dist_func:Callable, nn_n_random:int = 1) -> List[Node]:
     ordered_nodes = []
     for nodes in clusters_nodes:
         ordered_nodes.extend(build_with_nearest_neighbor(nodes, dist_func, nn_n_random))
@@ -99,7 +99,7 @@ def build_single_with_random(clusters_nodes:List[List[Node]]):
     return ordered_nodes
 
 
-def build_with_nearest_neighbor(nodes:List[Node], dist:callable, nn_n_random:int = 1) -> List[Node]:
+def build_with_nearest_neighbor(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> List[Node]:
 
     ordered_nodes = []
     remain_nodes = copy.copy(nodes)

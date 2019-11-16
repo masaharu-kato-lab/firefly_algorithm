@@ -23,21 +23,21 @@ class PathData:
         self.home_poses = mapper.starting_point
         self.distance_of = {node_pair:path[1] for node_pair, path in mapper.paths.items()}
 
-        self.nodes_to_index = {}
+        self.nodes_to_index:Dict[Node, int] = {}
         for i, node in enumerate(self.nodes):
             self.nodes_to_index[node] = i + 1
 
 
     # Calc distance of two points
     def distance(self, c1:Node, c2:Node) -> float:
-        if c1 == c2: return 0
+        if c1 == c2: return 0.0
         return self.distance_of[(c1, c2)]
 
 
     # Calc distance of coords
     def distance_of_nodes(self, nodes:List[Node]) -> float:
 
-        distance = 0
+        distance = 0.0
         for i in range(len(nodes)-1):
             distance += self.distance(nodes[i], nodes[i+1])
 
@@ -50,7 +50,7 @@ class DroneProperty:
         self.path_data = path_data
         self.home_pos = path_data.home_poses[0]
         self.speed = 0.5
-        self.battery_capacity = 3000
+        self.battery_capacity = 3000.0
         self.battery_per_distance = 1.0
 
 
@@ -62,8 +62,8 @@ class Drone:
 
         self.pos_history = [self.props.home_pos]
         self.last_pos = self.props.home_pos
-        self.total_distance = 0
-        self.elapsed_time = 0
+        self.total_distance = 0.0
+        self.elapsed_time = 0.0
         self.battery_remain = self.props.battery_capacity
 
 

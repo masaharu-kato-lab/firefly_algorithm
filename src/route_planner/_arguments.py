@@ -17,7 +17,6 @@ def parse():
     argp.add_argument('-tmin', '--n_min_iterate'   , type=int  , default =None    , help='Minimum number of iteration (Optional)')
     argp.add_argument('-tmax', '--n_max_iterate'   , type=int  , default =100000  , help='Maximum number of iteration (Optional)')
     argp.add_argument('-nis' , '--n_itr_steady'    , type=int  , default =100     , help='Running acceptable number of iteration from last update of best individual (optional)')
-    argp.add_argument('-ris' , '--rate_itr_steady' , type=float, default =2.0     , help='Running acceptable increase rate of iteration from last update of best individual (optional)' )
     argp.add_argument('-nr'  , '--n_run'           , type=int  , default=1        , help='Number of running')
     argp.add_argument('-ndr' , '--n_drones'        , type=int  , required=True    , help='Number of drones')
     argp.add_argument('-i'   , '--input'           , type=str  , default='res/pathdata/opu.pickle', help="Input pathdata pickle filepath")
@@ -25,6 +24,7 @@ def parse():
     argp.add_argument('-bo'  , '--binary_output'   , type=str  , default =None    , help='Binary output path (None for default)')
     argp.add_argument('-fmi' , '--format_init'     , type=str  , default =None    , help='Format text to display initial individuals')
     argp.add_argument('-fmt' , '--format_itr'      , type=str  , default =None    , help='Format text to display individuals while iteration')
+    argp.add_argument('-fmtt', '--format_terminate', type=str  , default =None    , help='Format text to message for terminate')
     argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="cpnn"  , choices=["rnn", "cpnn"], help="Building method in initialization, 'rnn' (mix of random generation and nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor)")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
     argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
@@ -78,7 +78,8 @@ def parse():
     if args.init_seed == None: args.init_seed = args.seed
 
 
-    if args.format_init is None: args.format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
-    if args.format_itr  is None: args.format_itr  = '{t:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
+    if args.format_init      is None: args.format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
+    if args.format_itr       is None: args.format_itr  = '{nu:>6}\t{t:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
+    if args.format_terminate is None: args.format_terminate = '#Terminated on iteration {t}'
 
     return args

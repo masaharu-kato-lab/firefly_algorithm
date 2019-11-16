@@ -1,5 +1,5 @@
-import numpy as np
-from typing import List, Dict, Tuple
+import numpy as np  #type:ignore
+from typing import Any, Callable, List, Dict, Tuple
 
 def get_func(name:str, *, path_data, angle_weight:float=None):
 
@@ -29,15 +29,15 @@ def get_func(name:str, *, path_data, angle_weight:float=None):
 
     
 
-def get_precalced_func(dist_func:callable, vecs:List[Tuple]) -> callable:
+def get_precalced_func(dist_func:Callable, vecs:List[Tuple]) -> Callable:
     return get_precalced_func_by_dists(get_precaled_dists(dist_func, vecs))
 
 
-def get_precalced_func_by_dists(dists:Dict[Tuple[Tuple], float]) -> callable:
+def get_precalced_func_by_dists(dists:Dict[Tuple[Any, Any], float]) -> Callable:
     return lambda v1, v2: dists[(v1, v2)]
 
 
-def get_precaled_dists(dist_func:callable, vecs:List[np.array]) -> Dict[Tuple[Tuple], float]:
+def get_precaled_dists(dist_func:Callable, vecs:List[np.array]) -> Dict[Tuple[Any, Any], float]:
     return {(v1, v2):dist_func(np.array(v1), np.array(v2)) for v1 in vecs for v2 in vecs}
 
 
