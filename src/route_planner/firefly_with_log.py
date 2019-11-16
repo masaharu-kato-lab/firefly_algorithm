@@ -11,7 +11,7 @@ import log
 import init
 import route
 
-from typing import Callable, Dict, List, OrderedDict, Tuple
+from typing import Callable, Dict, List, Tuple
 Node = Tuple[int, int]
 Value = route.Plan
 
