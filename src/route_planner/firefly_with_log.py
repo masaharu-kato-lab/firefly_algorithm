@@ -1,7 +1,7 @@
-import random
-import os
-import sys
 from datetime import datetime
+import os
+import random
+import sys
 
 from attrdict import AttrDict #type:ignore
 import numpy as np #type:ignore
@@ -11,14 +11,14 @@ import log
 import init
 import route
 
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, OrderedDict, Tuple
 Node = Tuple[int, int]
 Value = route.Plan
 
 def run(args, *,
     path_data  : route.PathData,
     calc_value : Callable,
-):
+) -> Dict[int, AttrDict]:
 
     logfile = make_logfile_writer(args)
 
@@ -40,8 +40,6 @@ def run(args, *,
         logfile.write('#END')
     
     logfile.write('#EOF').flush()
-    if args.print_result:
-        print(states[-1].best_plan.text if states else 'None')
 
     return states
 
@@ -55,11 +53,11 @@ def optimize(
     calc_value: Callable,
     init_indivs : List[List[Node]],
     init_val_of : List[Value],
-) -> List[AttrDict]:
+) -> Dict[int, AttrDict]:
 
     np.random.seed(seed = args.seed)
 
-    states = []
+    states:Dict[int, AttrDict] = {}
 
     # Run firefly algorithm
     for state in firefly.run(
@@ -73,8 +71,8 @@ def optimize(
         blocked_alpha    = args.blocked_alpha,
         skip_check       = args.skip_check,
         use_jordan_alpha = args.use_jordan_alpha,
-    ):
-        states.append(state)
+    ):  
+        states[state.itr] = state
         
         if state.itr == state.best_itr:
             
@@ -114,15 +112,24 @@ def output_values(args, val_of:list, logfile:log.FileWriter):
 
 def make_continue_coef(args):
 
-    ccoef_mint  = (lambda idv: idv.itr <= args.n_min_iterate) if args.n_min_iterate is not None else lambda idv: False
-    ccoef_maxt  = (lambda idv: idv.itr <= args.n_max_iterate) if args.n_max_iterate else lambda idv: True
-
     if args.n_itr_steady:
-        continue_coef = lambda idv: ccoef_mint(idv) or (ccoef_maxt(idv) and (idv.itr - idv.best_itr) < args.n_itr_steady)
+        check_steady = lambda idv: (idv.itr - idv.best_itr) < args.n_itr_steady
+        if args.n_min_iterate:
+            if args.n_max_iterate:
+                if args.n_min_iterate > args.n_max_iterate:
+                    raise RuntimeError('Maximum iteration is smaller than minimum iteration.')
+                return lambda idv: idv.itr <= args.n_min_iterate or (idv.itr <= args.n_max_iterate and check_steady(idv))
+            return lambda idv: idv.itr <= args.n_min_iterate or check_steady(idv)
+        if args.n_max_iterate:
+            return lambda idv: idv.itr <= args.n_max_iterate and check_steady(idv)
+        return lambda idv: check_steady(idv)
     else:
-        continue_coef = lambda idv: ccoef_mint(idv) or ccoef_maxt(idv)
-
-    return continue_coef
+        if args.n_min_iterate:
+            return lambda idv: idv.itr <= args.n_min_iterate
+        if args.n_max_iterate:
+            return lambda idv: idv.itr <= args.n_max_iterate
+    
+    raise RuntimeError('All of minimum and maximum and steady iterations are not specified.')
 
 
 

@@ -34,9 +34,9 @@ def main():
     # with open('{}/args.json'.format(args.output), mode='w') as f:
     #     json.dump(out_bin.args.__dict__, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(', ', ': '))
 
-    for seed, states in out_bin.states_by_seed.items():
+    for seed, final_states in out_bin.final_states_by_seed.items():
         print('seed:{}'.format(seed))
-        plan = states[-1].best_plan
+        plan = final_states.best_plan
 
         plt.figure()
         world.plot_world()

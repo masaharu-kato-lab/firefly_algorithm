@@ -32,10 +32,10 @@ def main():
         with open(cinput, mode='rb') as f:
             out_bin = pickle.load(f)
 
-        last_states = [states[-1] for states in out_bin.states_by_seed.values()]
+        final_states = out_bin.final_states_by_seed.values()
         plt.scatter(
-            [last_state.best_itr for last_state in last_states],
-            [last_state.best_plan.value for last_state in last_states],
+            [final_state.best_itr for final_state in final_states],
+            [final_state.best_plan.value for final_state in final_states],
             color=cmap(int(i % args.group_length)),
             marker=mmap[int(i // args.group_length)],
             label=os.path.splitext(os.path.basename(cinput))[0],

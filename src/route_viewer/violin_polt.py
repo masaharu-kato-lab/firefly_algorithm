@@ -35,7 +35,7 @@ def main():
         with open(cinput, mode='rb') as f:
             out_bin = pickle.load(f)
 
-        data.append([get_value(last_state) for last_state in list(out_bin.states_by_seed.values())[-1]])
+        data.append([get_value(final_state) for final_state in out_bin.final_states_by_seed.values()])
 
         if args.name is not None:
             names.append(args.name.format(**out_bin.args.__dict__))

@@ -37,8 +37,8 @@ def main():
         bin_args = out_bin.args.__dict__
         path_counter = PathCounter()
 
-        for last_state in (states[-1] for states in out_bin.states_by_seed.values()):
-            for drone in last_state.best_plan.drones:
+        for final_state in out_bin.final_states_by_seed.values():
+            for drone in final_state.best_plan.drones:
                 path_counter.add_poses(drone.pos_history)
 
         n_plans = len(out_bin.states_by_seed)

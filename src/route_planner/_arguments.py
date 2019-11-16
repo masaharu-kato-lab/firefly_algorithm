@@ -43,7 +43,6 @@ def parse():
     argp.add_argument('-io'  ,'--init_only'        , action='store_true'          , help='Run only initialization')
     argp.add_argument('-sto' ,'--stdout'           , action='store_true'          , help='Whether output results to stdout or not (output to automatically created file)')
     argp.add_argument('-nio' ,'--no_init_output'   , action='store_true'          , help='Not output initial individuls')
-    argp.add_argument('-pr'  ,'--print_result'     , action='store_true'          , help='Print final results to stdout')
     args = argp.parse_args()
 
     if args.init_cls_method == "none":
