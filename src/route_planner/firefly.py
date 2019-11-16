@@ -1,29 +1,30 @@
-import numpy as np
 import copy
 import time
-import attrdict
-import distance
-import permutation
-# from types import List, Dict, Tuple, Node
 
-from typing import Any, List, Dict, Tuple
+from attrdict import AttrDict #type:ignore
+import distance #type:ignore
+import numpy as np #type:ignore
+
+import permutation
+
+from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 Node = Tuple[int, int]
-Indiv = List[List[Node]]
 Value = Any
+
 
 # Firefly algorithm calculation class
 def run(*,
-    init_indivs     : List[Indiv],        # Initial individuals permutation
+    init_indivs     : List[List[Node]],   # Initial individuals permutation
     init_val_of     : List[Value] = None, # Initial individuals evaluation value (optional)
     nodes           : List[Node],         # List of nodes
-    calc_value      : callable,           # Objective function (originally means light intensity (luminosity) of fireflies)
+    calc_value      : Callable,           # Objective function (originally means light intensity (luminosity) of fireflies)
     gamma           : float,              # gamma value
     alpha           : float,              # alpha value
     blocked_alpha   : float = None,       # alpha value on fireflies are blocked (None to equal to normal alpha)
-    continue_coef   : callable,           # Number of iteration
+    continue_coef   : Callable,           # Number of iteration
     skip_check      : bool = False,       # Skip permutation validation if true
     use_jordan_alpha: bool                # Use jordan's method in alpha step
-):
+) -> AttrDict:
     
     if blocked_alpha is None: blocked_alpha = alpha
 
@@ -31,12 +32,12 @@ def run(*,
     val_of = init_val_of if init_val_of else list(map(calc_value, x))
 
     indexes = list(range(len(nodes)))
+    
+    n_updated = 0
+    best_itr = None
+    best_plan = None
 
-    ret = attrdict.AttrDict()
-    ret.best_itr = None
-    ret.best_plan = None
-
-    t = 0
+    t = 1
     while True:
         start_time = time.time()
 
@@ -75,28 +76,33 @@ def run(*,
                         
             best_id = np.argmin(val_of)
 
-        ret.elapsed_time = time.time() - start_time
-        ret.c_n_attracted = n_attracted
-        ret.c_itr = t
 
-        if ret.best_plan is None or val_of[best_id] < ret.best_plan:
-            ret.prev_best_itr = ret.best_itr
-            ret.best_itr = t
-            ret.best_id = best_id
-            ret.best_plan = val_of[best_id]
-            ret.best_n_attracted = n_attracted
 
-        if not continue_coef(ret): break
+        if best_plan is None or val_of[best_id] < best_plan:
+            n_updated += 1
+            best_itr = t
+            best_plan = val_of[best_id]
+
+
+        state = AttrDict()
+        state.itr = t
+        state.best_itr = best_itr
+        state.best_plan = best_plan
+        state.n_updated = n_updated
+        state.elapsed_time = time.time() - start_time
+        state.n_attracted = n_attracted
+
+        if not continue_coef(state): break
 
         t += 1
-        yield ret
+        yield state
 
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)
-def beta_step(perm1:Indiv, perm2:Indiv, nodes:List[Node], indexes:List[int], beta:float):
+def beta_step(perm1:List[Node], perm2:List[Node], nodes:List[Node], indexes:List[int], beta:float):
 
-    perm12 = [None] * len(perm1)
+    perm12:List[Optional[Node]] = [None] * len(perm1)
     empty_nodes   = copy.copy(nodes)
     empty_indexes = copy.copy(indexes)
     
@@ -104,7 +110,7 @@ def beta_step(perm1:Indiv, perm2:Indiv, nodes:List[Node], indexes:List[int], bet
     for i in indexes: # DO NOT 'for i in empty_indexes'
         if(perm1[i] == perm2[i]):
             perm12[i] = perm1[i]
-            empty_nodes.remove(perm12[i])
+            empty_nodes.remove(cast(Node, perm12[i]))
             empty_indexes.remove(i)
 
 
@@ -134,7 +140,7 @@ def beta_step(perm1:Indiv, perm2:Indiv, nodes:List[Node], indexes:List[int], bet
 
 
 # Alpha step (randomly swap nodes in permutation based on alpha value)
-def alpha_step(perm:Indiv, indexes:List[int], alpha:int, use_jordan_alpha:bool):
+def alpha_step(perm:List[Node], indexes:List[int], alpha:int, use_jordan_alpha:bool):
 
     if(alpha <= 1): return perm
 

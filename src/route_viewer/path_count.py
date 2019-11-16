@@ -1,12 +1,14 @@
 #!env/bin/python
-import pickle
 import argparse
-import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
+import os
+import pickle
+
+from attrdict import AttrDict #type:ignore
+import matplotlib.pyplot as plt #type:ignore
+from matplotlib.collections import LineCollection #type:ignore
+
 from world import World
 from path_counter import PathCounter
-import os
-import attrdict
 
 # import sys
 # import os
@@ -15,8 +17,7 @@ import attrdict
 def main():
 
     argp = argparse.ArgumentParser(description='Route binary viewer')
-    argp.add_argument('-i', '--input' , nargs='*', type=str, required=True, help='Input binary pickle file path')
-    argp.add_argument('-f', '--files', nargs='*', type=str)
+    argp.add_argument('input' , nargs='*', type=str, help='Input binary pickle file path (multiple)')
     argp.add_argument('-o', '--output' , type=str, default=None, help='Output figure file directory (None to display)')
     argp.add_argument('-mi', '--mapper_input', type=str, default='res/pathdata/opu.pickle', help='Input mapper pickle file path')
     argp.add_argument('-sw', '--standard_width', type=float, default=5.0, help='Standard line width of path')
@@ -36,11 +37,11 @@ def main():
         bin_args = out_bin.args.__dict__
         path_counter = PathCounter()
 
-        for last_ret in out_bin.lasts.values():
-            for drone in last_ret.best_plan.drones:
+        for final_state in out_bin.final_states_by_seed.values():
+            for drone in final_state.best_plan.drones:
                 path_counter.add_poses(drone.pos_history)
 
-        n_plans = len(out_bin.lasts)
+        n_plans = len(out_bin.states_by_seed)
         lines = LineCollection(
             list(path_counter.undirected_counter.keys()),
             linewidths=[(count / n_plans) * args.standard_width for count in path_counter.undirected_counter.values()]

@@ -1,14 +1,14 @@
 import math
-from typing import List
+from typing import List, Callable
 
 def calc(coefs:List[float], x:float) -> float:
-    current = 0
+    current = 0.0
     for coef in reversed(coefs):
         current = current * x + coef
     return current
 
 
-def get_calcer(coefs:List[float]) -> callable:
+def get_calcer(coefs:List[float]) -> Callable:
     return lambda x: calc(coefs, x)
 
 
@@ -16,12 +16,12 @@ def get_derivative_coefs(coefs:List[float]) -> List[float]:
     return [i * coef for i, coef in enumerate(coefs[1:], 1)]
 
 
-def get_derivative_calcer(coefs:List[float]) -> callable:
+def get_derivative_calcer(coefs:List[float]) -> Callable:
     d_coefs = get_derivative_coefs(coefs)
     return lambda x: calc(d_coefs, x)
 
 
-def solve_with_newton(*, f:callable, df:callable, prec:float, init:float = 0):
+def solve_with_newton(*, f:Callable, df:Callable, prec:float, init:float = 0):
     x = init
     c = 0
     while True:

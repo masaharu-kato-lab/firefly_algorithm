@@ -1,6 +1,6 @@
 import pickle
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+import matplotlib as mpl #type:ignore
+import matplotlib.pyplot as plt #type:ignore
 import sys
 import os
 

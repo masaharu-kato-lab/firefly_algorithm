@@ -2,7 +2,7 @@
 
 import pickle
 import argparse
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #type:ignore
 import sys
 import os
 sys.path.append(os.path.dirname(__file__) + '/../route_planner')
@@ -14,17 +14,17 @@ def main():
     argp.add_argument('-o', '--output', type=str, default=None, help='Output figure image file path (None for display)')
     argp.add_argument('-nm', '--name', type=str, default=None, help='Name formatted text on each file')
     argp.add_argument('-t', '--title', type=str, default=None, help='Title text')
-    argp.add_argument('-v', '--value', type=str, choices=['luminosity', 'distance', 'safety', 'iteration'], help='Value to show')
+    argp.add_argument('-v', '--value', type=str, default='luminosity', choices=['luminosity', 'distance', 'safety', 'iteration'], help='Value to show')
     argp.add_argument('-sx', '--size_x', type=float, default=12, help='Figure size x (inch)')
     argp.add_argument('-sy', '--size_y', type=float, default=8, help='Figure size y (inch)')
     argp.add_argument('-dpi', '--dpi', type=float, default=200, help='Figure DPI (pixel per inch)')
     args = argp.parse_args()
 
     get_value = {
-        'distance'  : lambda ret: ret.best_plan.total_distance,
-        'safety'    : lambda ret: ret.best_plan.average_safety,
-        'luminosity': lambda ret: ret.best_plan.value,
-        'iteration' : lambda ret: ret.best_itr
+        'distance'  : lambda state: state.best_plan.total_distance,
+        'safety'    : lambda state: state.best_plan.average_safety,
+        'luminosity': lambda state: state.best_plan.value,
+        'iteration' : lambda state: state.best_itr
     }[args.value]
 
     data = []
@@ -35,7 +35,7 @@ def main():
         with open(cinput, mode='rb') as f:
             out_bin = pickle.load(f)
 
-        data.append([get_value(last_ret) for last_ret in out_bin.lasts.values()])
+        data.append([get_value(final_state) for final_state in out_bin.final_states_by_seed.values()])
 
         if args.name is not None:
             names.append(args.name.format(**out_bin.args.__dict__))

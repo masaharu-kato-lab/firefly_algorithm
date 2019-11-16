@@ -1,13 +1,13 @@
-import numpy as np
+import numpy as np #type:ignore
 import copy
 import random
 
-from typing import List, Dict, Tuple
+from typing import Callable, Dict, List, Tuple
 Node = Tuple[int, int]
 
 
 # get function (lambda) from clustering method name
-def get_function(*, method:str, nodes:List[Node], n_cluster:int, dist:callable) -> callable:
+def get_function(*, method:str, nodes:List[Node], n_cluster:int, dist:Callable) -> Callable:
 
     method = method.lower()
 
@@ -30,7 +30,7 @@ def no_clustering(nodes:List[Node]):
     return [nodes]
 
 
-def medoids_cluster(nodes:List[Node], medoids:List[Node], dist:callable):
+def medoids_cluster(nodes:List[Node], medoids:List[Node], dist:Callable):
 
     clusters_nodes = [[medoid] for medoid in medoids]
     total_cost = 0 # sum of distance between each nodes and its medoid in each clusters
@@ -50,12 +50,12 @@ def choice_random_medoids(nodes:List[Node], n_cluster:int):
     return [nodes[i] for i in np.random.choice(len(nodes), n_cluster, replace=False)]
 
 
-def random_medoids(nodes:List[Node], n_cluster:int, dist:callable):
+def random_medoids(nodes:List[Node], n_cluster:int, dist:Callable):
     clusters_nodes, _ = medoids_cluster(nodes, choice_random_medoids(nodes, n_cluster), dist)
     return clusters_nodes
 
 
-def partitioning_around_medoids(nodes:List[Node], n_cluster:int, dist:callable):
+def partitioning_around_medoids(nodes:List[Node], n_cluster:int, dist:Callable):
 
     # generate initial medoids randomly
     medoids = choice_random_medoids(nodes, n_cluster)

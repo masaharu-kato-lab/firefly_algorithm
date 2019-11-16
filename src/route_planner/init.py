@@ -1,10 +1,10 @@
 import clustering
 import build
-import numpy as np
+import numpy as np #type:ignore
 import random
 import route
 import distances
-from typing import List, Dict, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 Node = Tuple[int, int]
 
 import permutation
@@ -67,8 +67,8 @@ def cluster_patterned_generate(*,
     n_indiv:int,
     cls_method:str,
     n_cluster:int,
-    cls_dist:callable,
-    bld_dist:callable,
+    cls_dist:Callable,
+    bld_dist:Callable,
 ):
 
     clusters_nodes = clustering.get_function(method = cls_method, nodes = nodes, n_cluster = n_cluster, dist = cls_dist)()
@@ -87,8 +87,8 @@ def mix_generate(*,
     n_indiv:int,
     cls_method:str,
     n_cluster:int,
-    cls_dist:callable,
-    bld_dist:callable,
+    cls_dist:Callable,
+    bld_dist:Callable,
     nn_rate:float,
     cls_each:bool
 ):
@@ -97,7 +97,7 @@ def mix_generate(*,
 
     n_init_random_build = n_indiv * (1.0 - nn_rate)
 
-    x = [None] * n_indiv
+    x:List[List[Node]] = []
 
     if not cls_each: clusters_nodes = clustering_function()
 
@@ -106,17 +106,17 @@ def mix_generate(*,
         if cls_each: clusters_nodes = clustering_function()
 
         if i < n_init_random_build:
-            x[i] = build.build_single_with_random(clusters_nodes)
+            x.append(build.build_single_with_random(clusters_nodes))
         else:
-            x[i] = build.build_single_with_nearest_neighbor(clusters_nodes, bld_dist)
+            x.append(build.build_single_with_nearest_neighbor(clusters_nodes, bld_dist))
 
     return x
 
 
 
 def random_generate(*, nodes:List[Node], n_indiv:int):
-    x = [None] * n_indiv
-    for i in range(len(x)):
-        x[i] = build.build_randomly(nodes)
+    x:List[List[Node]] = []
+    for _ in range(len(x)):
+        x.append(build.build_randomly(nodes))
     return x
 

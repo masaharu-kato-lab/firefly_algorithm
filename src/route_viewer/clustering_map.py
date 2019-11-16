@@ -1,18 +1,18 @@
 #!env/bin/python
 import pickle
 import argparse
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #type:ignore
 import sys
 import os
 import json
 from world import World
 import random
-import numpy as np
+import numpy as np #type:ignore
 
 sys.path.append(os.path.dirname(__file__) + '/../route_planner')
-import init
-import route
-import distances
+import init #type:ignore
+import route #type:ignore
+import distances #type:ignore
 
 def main():
 

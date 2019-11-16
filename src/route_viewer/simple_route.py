@@ -1,7 +1,7 @@
 #!env/bin/python
 import pickle
 import argparse
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #type:ignore
 import sys
 import os
 import json
@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 def main():
 
     argp = argparse.ArgumentParser(description='Route binary viewer')
-    argp.add_argument('-i', '--input' , type=str, required=True, help='Input binary pickle file path')
+    argp.add_argument('input', type=str, help='Input binary pickle file path')
     argp.add_argument('-o', '--output', type=str, default=None, help='Output png image file path (None:default)')
     argp.add_argument('-mi', '--mapper_input', type=str, default='res/pathdata/opu.pickle', help='Input mapper pickle file path')
     argp.add_argument('-lg', '--show_legend', action='store_true', help='show legend')
@@ -34,9 +34,9 @@ def main():
     # with open('{}/args.json'.format(args.output), mode='w') as f:
     #     json.dump(out_bin.args.__dict__, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(', ', ': '))
 
-    for seed, last_ret in out_bin.lasts.items():
+    for seed, final_states in out_bin.final_states_by_seed.items():
         print('seed:{}'.format(seed))
-        plan = last_ret.best_plan
+        plan = final_states.best_plan
 
         plt.figure()
         world.plot_world()

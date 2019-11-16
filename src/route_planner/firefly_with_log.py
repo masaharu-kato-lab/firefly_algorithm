@@ -1,30 +1,32 @@
-import numpy as np
-import random
-import os
-import sys
 from datetime import datetime
+import os
+import random
+import sys
+
+from attrdict import AttrDict #type:ignore
+import numpy as np #type:ignore
 
 import firefly
 import log
 import init
 import route
 
-from typing import List, Dict, Tuple
+from typing import Callable, Dict, List, OrderedDict, Tuple
 Node = Tuple[int, int]
 Value = route.Plan
 
 def run(args, *,
     path_data  : route.PathData,
-    calc_value : callable,
-):
+    calc_value : Callable,
+) -> Dict[int, AttrDict]:
 
     logfile = make_logfile_writer(args)
 
     # Output basic information
     logfile.write('#Program\tRoute Planner')
-    if args.output_args: logfile.write('#Args\t{}'.format(vars(args)))
+    logfile.write('#Args\t{}'.format(vars(args)))
 
-    indivs = init.generate(args, path_data = path_data)
+    indivs:List[List[Node]] = init.generate(args, path_data = path_data)
     val_of = list(map(calc_value, indivs))
 
     if not args.no_init_output:
@@ -32,17 +34,14 @@ def run(args, *,
         output_values(args, val_of, logfile)
         logfile.write('#END').flush()
 
-
     if not args.init_only:
         logfile.write('#Iterations')
-        last_ret = optimize(args, logfile, nodes=path_data.nodes, calc_value=calc_value, init_indivs=indivs, init_val_of=val_of)
+        states = optimize(args, logfile, nodes=path_data.nodes, calc_value=calc_value, init_indivs=indivs, init_val_of=val_of)
         logfile.write('#END')
     
     logfile.write('#EOF').flush()
-    if args.print_result:
-        print(last_ret.text)
 
-    return last_ret
+    return states
 
 
 
@@ -51,17 +50,17 @@ def optimize(
     logfile  : log.FileWriter,
     *,
     nodes    : List[Node],
-    calc_value: callable,
+    calc_value: Callable,
     init_indivs : List[List[Node]],
     init_val_of : List[Value],
-):
+) -> Dict[int, AttrDict]:
 
     np.random.seed(seed = args.seed)
 
-    last_ret = None
+    states:Dict[int, AttrDict] = {}
 
     # Run firefly algorithm
-    for ret in firefly.run(
+    for state in firefly.run(
         nodes            = nodes,
         init_indivs      = init_indivs,
         init_val_of      = init_val_of,
@@ -72,36 +71,30 @@ def optimize(
         blocked_alpha    = args.blocked_alpha,
         skip_check       = args.skip_check,
         use_jordan_alpha = args.use_jordan_alpha,
-    ):
-        if ret.c_itr == ret.best_itr:
+    ):  
+        states[state.itr] = state
+        
+        if state.itr == state.best_itr:
             
-            last_plan_log = args.format_itr.format(
-                t    = ret.c_itr,
-                v    = ret.best_plan.value,
-                sv   = ret.best_plan.average_safety,
-                dv   = ret.best_plan.total_distance,
-                log  = ret.best_plan.text,
-                # time = current_elasped_time
-            )
-            logfile.write(last_plan_log).flush()
+            logfile.write(args.format_itr.format(
+                t    = state.itr,
+                nu   = state.n_updated,
+                v    = state.best_plan.value,
+                sv   = state.best_plan.average_safety,
+                dv   = state.best_plan.total_distance,
+                log  = state.best_plan.text,
+            )).flush()
 
-            # current_elasped_time = 0
-
-        if args.show_progress and ret.c_itr % 10 == 0:
+        if args.show_progress and state.itr % 10 == 0:
             print('.', file=sys.stderr, end='')
             sys.stderr.flush()
 
-        last_ret = ret
-
-    logfile.write('{t:>6}\t#terminated.'.format(t = last_ret.c_itr))
+    logfile.write(args.format_terminate.format(t = state.itr))
         
     if args.show_progress:
         print('', file=sys.stderr)
 
-    
-    last_ret.plan_log = last_plan_log
-
-    return last_ret
+    return states
 
 
 
@@ -119,19 +112,24 @@ def output_values(args, val_of:list, logfile:log.FileWriter):
 
 def make_continue_coef(args):
 
-    ccoef_mint  = (lambda idv: idv.c_itr < args.n_min_iterate) if args.n_min_iterate is not None else lambda idv: False
-    ccoef_maxt  = (lambda idv: idv.c_itr < args.n_max_iterate) if args.n_max_iterate else lambda idv: True
-
-    if args.n_itr_steady or args.rate_itr_steady:
-        ccoef_nis  = (lambda idv: (idv.c_itr - idv.best_itr) < args.n_itr_steady) if args.n_itr_steady else lambda idv: False
-        ccoef_ris  = (lambda idv: idv.prev_best_itr is None or (idv.c_itr - idv.best_itr) < (idv.best_itr - idv.prev_best_itr) * args.rate_itr_steady) if args.rate_itr_steady else lambda idv: False
-
-        continue_coef = lambda idv: ccoef_mint(idv) or (ccoef_maxt(idv) and (ccoef_nis(idv) or ccoef_ris(idv)))
-
+    if args.n_itr_steady:
+        check_steady = lambda idv: (idv.itr - idv.best_itr) < args.n_itr_steady
+        if args.n_min_iterate:
+            if args.n_max_iterate:
+                if args.n_min_iterate > args.n_max_iterate:
+                    raise RuntimeError('Maximum iteration is smaller than minimum iteration.')
+                return lambda idv: idv.itr <= args.n_min_iterate or (idv.itr <= args.n_max_iterate and check_steady(idv))
+            return lambda idv: idv.itr <= args.n_min_iterate or check_steady(idv)
+        if args.n_max_iterate:
+            return lambda idv: idv.itr <= args.n_max_iterate and check_steady(idv)
+        return lambda idv: check_steady(idv)
     else:
-        continue_coef = lambda idv: ccoef_mint(idv) or ccoef_maxt(idv)
-
-    return continue_coef
+        if args.n_min_iterate:
+            return lambda idv: idv.itr <= args.n_min_iterate
+        if args.n_max_iterate:
+            return lambda idv: idv.itr <= args.n_max_iterate
+    
+    raise RuntimeError('All of minimum and maximum and steady iterations are not specified.')
 
 
 
