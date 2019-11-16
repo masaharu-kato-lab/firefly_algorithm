@@ -2,7 +2,7 @@ import copy
 import time
 
 from attrdict import AttrDict #type:ignore
-import distance #type:ignore
+
 import numpy as np #type:ignore
 
 import permutation
@@ -10,6 +10,15 @@ import permutation
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 Node = Tuple[int, int]
 Value = Any
+
+
+def hamming(seq1, seq2):
+    L = len(seq1)
+    if L != len(seq2):
+        raise ValueError("expected two strings of the same length")
+    if L == 0:
+        return 0  # equal
+    return sum(c1 != c2 for c1, c2 in zip(seq1, seq2))
 
 
 # Firefly algorithm calculation class
@@ -26,10 +35,21 @@ def run(*,
     use_jordan_alpha: bool                # Use jordan's method in alpha step
 ) -> AttrDict:
     
+    if not init_indivs: raise RuntimeError('No individuals.')
+
     if blocked_alpha is None: blocked_alpha = alpha
 
     x = init_indivs
     val_of = init_val_of if init_val_of else list(map(calc_value, x))
+
+    state = AttrDict()
+    state.itr = 0
+    state.best_itr = 0
+    state.best_plan = val_of[np.argmin(val_of)]
+    state.n_updated = 0
+    state.elapsed_time = 0
+    state.n_attracted = 0
+    yield state
 
     indexes = list(range(len(nodes)))
     
@@ -55,7 +75,7 @@ def run(*,
                 if val_of[i] > val_of[j]:
                     n_attracted += 1
 
-                    beta = 1 / (1 + gamma * distance.hamming(x[i], x[j]))
+                    beta = 1 / (1 + gamma * hamming(x[i], x[j]))
                     new_beta_x = beta_step(x[i], x[j], nodes, indexes, beta)
                     x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0), use_jordan_alpha)
                     val_of[i] = calc_value(x[i])

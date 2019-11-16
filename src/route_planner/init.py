@@ -47,7 +47,7 @@ def _generate(args, *, path_data:route.PathData) -> List[List[Node]]:
             cls_each = args.init_cls_each
         )
 
-    elif bld_method == 'cpnn':
+    if bld_method == 'cpnn':
         return cluster_patterned_generate(
             nodes = path_data.nodes,
             n_indiv = args.n_indiv,
@@ -57,8 +57,7 @@ def _generate(args, *, path_data:route.PathData) -> List[List[Node]]:
             cls_dist = cls_dist,
         )
 
-    else:
-        raise RuntimeError('Unknown initial building method.')
+    raise RuntimeError('Unknown initial building method.')
 
 
 
@@ -91,7 +90,7 @@ def mix_generate(*,
     bld_dist:Callable,
     nn_rate:float,
     cls_each:bool
-):
+) -> List[List[Node]]:
 
     clustering_function = clustering.get_function(method = cls_method, nodes = nodes, n_cluster = n_cluster, dist = cls_dist)
 
@@ -101,7 +100,7 @@ def mix_generate(*,
 
     if not cls_each: clusters_nodes = clustering_function()
 
-    for i in range(len(x)):
+    for i in range(n_indiv):
 
         if cls_each: clusters_nodes = clustering_function()
 
@@ -116,7 +115,7 @@ def mix_generate(*,
 
 def random_generate(*, nodes:List[Node], n_indiv:int):
     x:List[List[Node]] = []
-    for _ in range(len(x)):
+    for _ in range(n_indiv):
         x.append(build.build_randomly(nodes))
     return x
 
