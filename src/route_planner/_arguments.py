@@ -87,7 +87,7 @@ def parse():
 
 
     if args.format_init      is None: args.format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
-    if args.format_itr       is None: args.format_itr  = '{nbup:>6}\t{t:>6}\t{nup:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
+    if args.format_itr       is None: args.format_itr  = '{nbup:>6}\t{t:>6}\t{nup:>9}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
     if args.format_terminate is None: args.format_terminate = '#Terminated on iteration {t}'
 
     return args
