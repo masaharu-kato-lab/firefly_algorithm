@@ -29,7 +29,7 @@ def main():
 
     x_factory = {
         'iteration': lambda states: (state.best_itr  for state in states),
-        'update'   : lambda states: (state.n_updated for state in states),
+        'update'   : lambda states: (state.n_best_updates for state in states),
     }[args.xtype]
 
     y_factory = {

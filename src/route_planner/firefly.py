@@ -44,16 +44,18 @@ def run(*,
 
     state = AttrDict()
     state.itr = 0
+    state.n_updates = 0
     state.best_itr = 0
     state.best_plan = val_of[np.argmin(val_of)]
-    state.n_updated = 0
+    state.n_best_updates = 0
     state.elapsed_time = 0
-    state.n_attracted = 0
+    state.current_n_updates = 0
     yield state
 
     indexes = list(range(len(nodes)))
     
-    n_updated = 0
+    n_updates = 0
+    n_best_updates = 0
     best_itr = None
     best_plan = None
 
@@ -61,7 +63,7 @@ def run(*,
     while True:
         start_time = time.time()
 
-        n_attracted = 0
+        current_n_updates = 0
 
         sorted_id = np.argsort(val_of)
         x = [x[i] for i in sorted_id]
@@ -73,7 +75,7 @@ def run(*,
 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
                 if val_of[i] > val_of[j]:
-                    n_attracted += 1
+                    current_n_updates += 1
 
                     beta = 1 / (1 + gamma * hamming(x[i], x[j]))
                     new_beta_x = beta_step(x[i], x[j], nodes, indexes, beta)
@@ -85,7 +87,7 @@ def run(*,
 
         best_id = np.argmin(val_of)
 
-        if n_attracted == 0:
+        if current_n_updates == 0:
             for i in range(len(x)):
                 if(i != best_id):
                     x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0), use_jordan_alpha)
@@ -99,18 +101,21 @@ def run(*,
 
 
         if best_plan is None or val_of[best_id] < best_plan:
-            n_updated += 1
+            n_best_updates += 1
             best_itr = t
             best_plan = val_of[best_id]
+
+        n_updates += current_n_updates
 
 
         state = AttrDict()
         state.itr = t
+        state.n_updates = n_updates
         state.best_itr = best_itr
         state.best_plan = best_plan
-        state.n_updated = n_updated
+        state.n_best_updates = n_best_updates
         state.elapsed_time = time.time() - start_time
-        state.n_attracted = n_attracted
+        state.current_n_updates = current_n_updates
 
         if not continue_coef(state): break
 
