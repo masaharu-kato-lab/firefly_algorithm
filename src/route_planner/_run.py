@@ -16,7 +16,12 @@ from typing import Callable, Dict
 
 def main():
 
-    args = _arguments.parse()
+    try:
+        args = _arguments.parse()
+    except RuntimeError as e:
+        print('Argument Error: {}'.format(e))
+        return -1
+
 
     path_data = route.PathData(args.input)
     calc_value = get_calc_value(args, path_data=path_data)

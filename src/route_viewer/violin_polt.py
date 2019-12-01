@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 def main():
 
     argp = argparse.ArgumentParser(description='Route distribution checker')
-    argp.add_argument('input', nargs='*', type=str, help='Input binary pickle files path')
+    argp.add_argument('input', nargs='+', type=str, help='Input binary pickle files path')
     argp.add_argument('-o', '--output', type=str, default=None, help='Output figure image file path (None for display)')
     argp.add_argument('-nm', '--name', type=str, default=None, help='Name formatted text on each file')
     argp.add_argument('-t', '--title', type=str, default=None, help='Title text')

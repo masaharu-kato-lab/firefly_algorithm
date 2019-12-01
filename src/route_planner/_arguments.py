@@ -15,8 +15,9 @@ def parse():
     argp.add_argument('-sw'  , '--safety_weight'   , type=float, default=10000    , help='Weight value of safety on objective function')
     argp.add_argument('-dw'  , '--distance_weight' , type=float, default=1        , help='Weight value of distance on objective function')
     argp.add_argument('-tmin', '--n_min_iterate'   , type=int  , default =None    , help='Minimum number of iteration (Optional)')
-    argp.add_argument('-tmax', '--n_max_iterate'   , type=int  , default =100000  , help='Maximum number of iteration (Optional)')
-    argp.add_argument('-nis' , '--n_itr_steady'    , type=int  , default =100     , help='Running acceptable number of iteration from last update of best individual (optional)')
+    argp.add_argument('-tmax', '--n_max_iterate'   , type=int  , default =None    , help='Maximum number of iteration (Optional)')
+    argp.add_argument('-nis' , '--n_itr_steady'    , type=int  , default =None    , help='Running acceptable number of iteration from last update of best individual (optional)')
+    argp.add_argument('-nup' , '--n_updates'       , type=int  , default =None    , help='(Maximum) number of updates (Optional). If specified, iteration arguments (`-tmin`, `-tmax`, `nis`) are ignored.')
     argp.add_argument('-nr'  , '--n_run'           , type=int  , default=1        , help='Number of running')
     argp.add_argument('-ndr' , '--n_drones'        , type=int  , required=True    , help='Number of drones')
     argp.add_argument('-i'   , '--input'           , type=str  , default='res/pathdata/opu.pickle', help="Input pathdata pickle filepath")
@@ -64,6 +65,14 @@ def parse():
     # if args.init_cls_dist != 'polar' and args.init_cls_dist_w is not None:
     #     raise RuntimeError("`--init_cls_dist_w` is not used when `--init_cls_dist` is not 'polar'")
 
+    if args.n_updates is not None:
+        if args.n_min_iterate is not None: raise RuntimeError('Cannot use `--n_min_iterate` with `--n_updates`.')
+        if args.n_max_iterate is not None: raise RuntimeError('Cannot use `--n_max_iterate` with `--n_updates`.')
+        if args.n_itr_steady  is not None: raise RuntimeError('Cannot use `--n_itr_steady` with `--n_updates`.')
+    else:
+        if args.n_min_iterate is None and args.n_max_iterate is None and args.n_itr_steady is None:
+            raise RuntimeError('At least one of `--n_min_iterate`, `--n_max_iterate`, `--n_itr_steady`, or `--n_updates` is required.')
+
 
     today = datetime.now()
     args.start_date = today.strftime("%Y%m%d")
@@ -78,7 +87,7 @@ def parse():
 
 
     if args.format_init      is None: args.format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
-    if args.format_itr       is None: args.format_itr  = '{nu:>6}\t{t:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
+    if args.format_itr       is None: args.format_itr  = '{nbup:>6}\t{t:>6}\t{nup:>9}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
     if args.format_terminate is None: args.format_terminate = '#Terminated on iteration {t}'
 
     return args

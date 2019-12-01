@@ -11,7 +11,7 @@ import log
 import init
 import route
 
-from typing import Callable, Dict, List, OrderedDict, Tuple
+from typing import Callable, Dict, List, Tuple
 Node = Tuple[int, int]
 Value = route.Plan
 
@@ -78,7 +78,8 @@ def optimize(
             
             logfile.write(args.format_itr.format(
                 t    = state.itr,
-                nu   = state.n_updated,
+                nup  = state.n_updates,
+                nbup = state.n_best_updates,
                 v    = state.best_plan.value,
                 sv   = state.best_plan.average_safety,
                 dv   = state.best_plan.total_distance,
@@ -111,6 +112,9 @@ def output_values(args, val_of:list, logfile:log.FileWriter):
 
 
 def make_continue_coef(args):
+
+    if args.n_updates:
+        return lambda idv: idv.n_updates <= args.n_updates
 
     if args.n_itr_steady:
         check_steady = lambda idv: (idv.itr - idv.best_itr) < args.n_itr_steady
