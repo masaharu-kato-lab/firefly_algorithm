@@ -117,11 +117,11 @@ def run(*,
         state.elapsed_time = time.time() - start_time
         state.current_n_updates = current_n_updates
 
+        yield state
+
         if not continue_coef(state): break
 
         t += 1
-        yield state
-
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)

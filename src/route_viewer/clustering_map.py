@@ -33,7 +33,7 @@ def main():
     # print('seed={}'.format(args.seed))
 
     world = World(args.mapper_input)
-    path_data = route.PathData(args.mapper_input)
+    pathdata = route.PathData(args.mapper_input)
 
     
     cmap = plt.get_cmap("tab10")
@@ -41,8 +41,8 @@ def main():
     
     for ni in range(args.seed, args.seed + args.number):
         np.random.seed(seed = ni)
-        cls_dist = distances.get_func(args.cls_dist, path_data = path_data)
-        clusters_nodes = init.clustering.get_function(method = args.cls_method, nodes = path_data.nodes, n_cluster = args.n_cls, dist = cls_dist)()
+        cls_dist = distances.get_func(args.cls_dist, pathdata = pathdata)
+        clusters_nodes = init.clustering.get_function(method = args.cls_method, nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist)()
         plt.figure()
         world.plot_world()
 

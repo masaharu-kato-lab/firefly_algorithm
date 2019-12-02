@@ -26,15 +26,13 @@ def parse():
     argp.add_argument('-fmi' , '--format_init'     , type=str  , default =None    , help='Format text to display initial individuals')
     argp.add_argument('-fmt' , '--format_itr'      , type=str  , default =None    , help='Format text to display individuals while iteration')
     argp.add_argument('-fmtt', '--format_terminate', type=str  , default =None    , help='Format text to message for terminate')
-    argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="cpnn"  , choices=["rnn", "cpnn"], help="Building method in initialization, 'rnn' (mix of random generation and nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor)")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
     argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
     argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
     # argp.add_argument('-ibdw', '--init_bld_dist_w' , type=float, default =None    , help="Weight of distance method in initial building (only works when `--init_bld_dist` is 'polar')")
     # argp.add_argument('-icdw', '--init_cls_dist_w' , type=float, default =None    , help="Weight of distance method in initial clustering (only works when `--init_cls_dist` is 'polar')")
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
-    argp.add_argument('-ibnr', '--init_bld_nn_rate', type=float, default =0       , help="Rate of nodes using nearest neighbor in initialization building (only works when `--init_bld_method` is 'rnn')")
-    argp.add_argument('-ice' , '--init_cls_each'   , action='store_true'          , help="Do clustering before each building (only works when `--init_bld_method` is 'rnn')")
+    argp.add_argument('-irr' , '--init_random_rate', type=float, default =0.0     , help="Rate of random generation in initialization building")
     argp.add_argument('-uja' , '--use_jordan_alpha', action='store_true'          , help="Use jordan's method in alpha step")
     argp.add_argument('-sp'  ,'--show_progress'    , action='store_true'          , help='Show progress to stderr')
     argp.add_argument('-nlo' ,'--no_log_output'    , action='store_true'          , help='Do not output log (text) file')
@@ -47,11 +45,8 @@ def parse():
     args = argp.parse_args()
 
     if args.init_cls_method == "none":
-        if args.init_n_cls is not None or args.init_cls_dist is not None or args.init_cls_each:
+        if args.init_n_cls is not None or args.init_cls_dist is not None:
             raise RuntimeError("`--init_cls_method` must not be 'none'.")
-
-    if args.init_bld_method != 'rnn' and (args.init_cls_each or args.init_bld_nn_rate):
-        raise RuntimeError("--init_bld_method` must be 'rnn'.")
 
     if args.binary_output is not None and args.no_binary_output:
         raise RuntimeError("`--no_binary_output` specified, but `--binary_output` specified.")
@@ -86,8 +81,8 @@ def parse():
     if args.init_seed == None: args.init_seed = args.seed
 
 
-    if args.format_init      is None: args.format_init = '{i:>6}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
+    if args.format_init      is None: args.format_init = '{i:>6}\t{pat:>13}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
     if args.format_itr       is None: args.format_itr  = '{nbup:>6}\t{t:>6}\t{nup:>9}\t{v:9.2f}\t{sv:9.6f}\t{dv:9.2f}\t{log}'
-    if args.format_terminate is None: args.format_terminate = '#Terminated on iteration {t}'
+    if args.format_terminate is None: args.format_terminate = '#Terminated on iteration {t} ({nup} updates)'
 
     return args
