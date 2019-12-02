@@ -15,7 +15,7 @@ def main():
     argp.add_argument('input', nargs='+', type=str, help='Input binary pickle file path')
     argp.add_argument('-o', '--output' , type=str, default=None, help='Output figure file path (None to display)')
     argp.add_argument('-t', '--title', type=str, default=None, help='Title text')
-    argp.add_argument('-x', '--xtype', type=str, choices=['iteration', 'update'], default='iteration', help='Value type for x-value of graph')
+    argp.add_argument('-x', '--xtype', type=str, choices=['iteration', 'n_best_updates', 'n_updates'], default='iteration', help='Value type for x-value of graph')
     argp.add_argument('-y', '--ytype', type=str, choices=['value'], default='value', help='Value type for y-value of graph')
     argp.add_argument('-ms', '--marker_size', type=float, default=10, help='Scatter marker size')
     argp.add_argument('-sx', '--size_x', type=float, default=12, help='Figure size x (inch)')
@@ -28,8 +28,9 @@ def main():
     mmap = ['o', 'x', 's', '+', 'D', 'H', 'd', 'h', '8']
 
     x_factory = {
-        'iteration': lambda states: (state.best_itr  for state in states),
-        'update'   : lambda states: (state.n_best_updates for state in states),
+        'iteration'      : lambda states: (state.best_itr  for state in states),
+        'n_best_updates' : lambda states: (state.n_best_updates for state in states),
+        'n_updates'      : lambda states: (state.n_updates for state in states),
     }[args.xtype]
 
     y_factory = {
