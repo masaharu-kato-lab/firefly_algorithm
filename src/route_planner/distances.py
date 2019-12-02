@@ -1,15 +1,15 @@
 import numpy as np  #type:ignore
 from typing import Any, Callable, List, Dict, Tuple
 
-def get_func(name:str, *, path_data, angle_weight:float=None):
+def get_func(name:str, *, pathdata, angle_weight:float=None):
 
     name = name.lower()
     
     if name == 'aster':
-        return path_data.distance
+        return pathdata.distance
 
-    vecs = path_data.nodes + [path_data.home_poses[0]]
-    origin = np.array(path_data.home_poses[0])
+    vecs = pathdata.nodes + [pathdata.home_poses[0]]
+    origin = np.array(pathdata.home_poses[0])
 
     if name == 'angle':
         return get_precalced_func(lambda v1, v2: angle_distance(v1, v2, origin), vecs)

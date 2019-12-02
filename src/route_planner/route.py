@@ -46,9 +46,9 @@ class PathData:
 
 class DroneProperty:
 
-    def __init__(self, path_data:PathData):
-        self.path_data = path_data
-        self.home_pos = path_data.home_poses[0]
+    def __init__(self, pathdata:PathData):
+        self.pathdata = pathdata
+        self.home_pos = pathdata.home_poses[0]
         self.speed = 0.5
         self.battery_capacity = 3000.0
         self.battery_per_distance = 1.0
@@ -68,7 +68,7 @@ class Drone:
 
 
     def _distance(self, c1:Node, c2:Node) -> float:
-        return self.props.path_data.distance(c1, c2)
+        return self.props.pathdata.distance(c1, c2)
 
 
     def move_to(self, target:Node) -> None:
@@ -107,13 +107,13 @@ class Drone:
 class PlanGenerator:
 
     def __init__(self, *,
-        path_data:PathData,
+        pathdata:PathData,
         drone_prop:DroneProperty,
         n_drones:int,
         safety_weight:float, # weight of uncertainly
         distance_weight:float, # weight of distance
     ):
-        self.path_data = path_data
+        self.pathdata = pathdata
         self.drone_prop = drone_prop
         self.n_drones = n_drones
         self.safety_weight = safety_weight
@@ -131,7 +131,7 @@ class Plan:
         self.clusters_nodes = clusters_nodes
         self.drones = [Drone(props.drone_prop) for _ in range(props.n_drones)]
 
-        nodes_to_index = props.drone_prop.path_data.nodes_to_index
+        nodes_to_index = props.drone_prop.pathdata.nodes_to_index
 
         last_visit_time_on_nodes = {}
         i_drone = 0

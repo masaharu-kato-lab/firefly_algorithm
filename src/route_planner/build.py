@@ -1,10 +1,29 @@
-import itertools
-import numpy as np #type:ignore
 import copy
-from typing import Any, Callable, Dict, List, Tuple
-Node = Tuple[int, int]
+from itertools import chain, product
+
+import numpy as np #type:ignore
 
 import nd_equation
+
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
+Node = Tuple[int, int]
+
+
+class PatternedPermutation:
+    def __init__(self, nodes:List[Node], pattern:Union[str, tuple]):
+        self.nodes = nodes
+        self.pattern = pattern
+        if not pattern: raise RuntimeError('Pattern is empty.')
+
+
+def chain_patterned_permutations(_perms:Iterable[PatternedPermutation]):
+    perms = list(_perms)
+    return PatternedPermutation(
+        [*chain.from_iterable(p.nodes for p in perms)],
+        tuple(p.pattern for p in perms)
+    )
+
+
 
 class Builder:
     
@@ -20,23 +39,19 @@ class Builder:
         self.n_cluster = len(clusters_nodes)
 
 
-    def build_with_dof(self, total_number:int) -> List[List[Node]]:
+    def build_with_dof(self, total_number:int) -> List[PatternedPermutation]:
         return self.build_with_multiple_pattern(self.calc_number_of_pattern(total_number))
 
 
-    def build_with_multiple_pattern(self, number_of_pattern:Dict[Any, int]) -> List[List[Node]]:
-        nodes_list = []
-        for pattern, number in number_of_pattern.items():
-            for _ in range(number):
-                nodes_list.append(self.build_with_pattern(pattern))
-        return nodes_list
+    def build_with_multiple_pattern(self, number_of_pattern:Dict[Any, int]) -> List[PatternedPermutation]:
+        return [*chain.from_iterable((self.build_with_pattern(pattern) for _ in range(number)) for pattern, number in number_of_pattern.items())]
 
 
-    def build_with_pattern(self, pattern:List[Any]) -> List[Node]:
-        whole_nodes:List[Node] = []
-        for i, nodes in enumerate(self.clusters_nodes):
-            whole_nodes.extend((self.func_of_methods[pattern[i]])(nodes))
-        return whole_nodes
+    def build_with_pattern(self, pattern:List[Any]) -> PatternedPermutation:
+        return chain_patterned_permutations(
+            (self.func_of_methods[pattern[i]])(nodes)
+            for i, nodes in enumerate(self.clusters_nodes)
+        )
 
 
     # dof = degree of freedom (= number of random constructing)
@@ -46,7 +61,7 @@ class Builder:
         dof_of_patterns = {}
 
         # count each dof
-        for pattern in itertools.product(self.methods, repeat = self.n_cluster):
+        for pattern in product(self.methods, repeat = self.n_cluster):
             dof = sum([self.dof_of_methods[method] for method in pattern])
             dof_of_patterns[pattern] = dof
             if dof in dof_count:
@@ -84,22 +99,7 @@ class Builder:
         return number_of_patterns
 
 
-
-def build_single_with_nearest_neighbor(clusters_nodes:List[List[Node]], dist_func:Callable, nn_n_random:int = 1) -> List[Node]:
-    ordered_nodes = []
-    for nodes in clusters_nodes:
-        ordered_nodes.extend(build_with_nearest_neighbor(nodes, dist_func, nn_n_random))
-    return ordered_nodes
-
-
-def build_single_with_random(clusters_nodes:List[List[Node]]):
-    ordered_nodes = []
-    for nodes in clusters_nodes:
-        ordered_nodes.extend(build_randomly(nodes))
-    return ordered_nodes
-
-
-def build_with_nearest_neighbor(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> List[Node]:
+def build_with_nearest_neighbor(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> PatternedPermutation:
 
     ordered_nodes = []
     remain_nodes = copy.copy(nodes)
@@ -116,9 +116,9 @@ def build_with_nearest_neighbor(nodes:List[Node], dist:Callable, nn_n_random:int
         ordered_nodes.append(last_node)
         remain_nodes.pop(min_id)
 
-    return ordered_nodes
+    return PatternedPermutation(ordered_nodes, 'N')
 
 
-def build_randomly(nodes:List[Node]) -> List[Node]:
-    return [nodes[i] for i in np.random.permutation(len(nodes))]
+def build_randomly(nodes:List[Node]) -> PatternedPermutation:
+    return PatternedPermutation([nodes[i] for i in np.random.permutation(len(nodes))], 'R')
 
