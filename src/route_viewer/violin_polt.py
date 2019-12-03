@@ -24,6 +24,7 @@ def main():
         'distance'  : lambda state: state.best_plan.total_distance,
         'safety'    : lambda state: state.best_plan.average_safety,
         'luminosity': lambda state: state.best_plan.value,
+        'n_updates' : lambda state: state.best_plan.n_updates,
         'iteration' : lambda state: state.best_itr
     }[args.value]
 
