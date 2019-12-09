@@ -36,11 +36,14 @@ def medoids_cluster(nodes:List[Node], medoids:List[Node], dist:Callable):
 
     for node in nodes:
         # calc distance from each medoids, and nearset cluster and its distance
-        dist_from_medoids = [dist(medoid, node) for medoid in medoids]
-        i_cluster = np.argmin(dist_from_medoids)
+        dists = np.array([dist(medoid, node) for medoid in medoids])
+        i_clusters = np.where(dists == dists.min())[0]
+        if len(i_clusters) > 1: print("choice one from multiple.")
+        i_cluster = np.random.choice(i_clusters) if len(i_clusters) > 1 else i_clusters[0]
+
         if node != clusters_nodes[i_cluster][0]:
             clusters_nodes[i_cluster].append(node)
-            total_cost += dist_from_medoids[i_cluster]
+            total_cost += dists[i_cluster]
 
     return clusters_nodes, total_cost
 

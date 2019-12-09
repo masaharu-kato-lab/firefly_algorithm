@@ -108,13 +108,16 @@ def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> Patter
     for i_itr in range(len(nodes)):
 
         if i_itr < nn_n_random:
-            min_id = np.random.choice(range(len(remain_nodes)))
+            target_id = np.random.choice(range(len(remain_nodes)))
         else:
-            min_id = np.argmin([dist(last_node, node) for node in remain_nodes])
+            dists = np.array([dist(last_node, node) for node in remain_nodes])
+            min_ids = np.where(dists == dists.min())[0]
+            if len(min_ids) > 1: print("choice one from multiple.")
+            target_id = np.random.choice(min_ids) if len(min_ids) > 1 else min_ids[0]
         
-        last_node = remain_nodes[min_id]
+        last_node = remain_nodes[target_id]
         ordered_nodes.append(last_node)
-        remain_nodes.pop(min_id)
+        remain_nodes.pop(target_id)
 
     if remain_nodes: raise RuntimeError('Remain nodes is not empty.')
 
