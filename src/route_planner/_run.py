@@ -3,7 +3,6 @@ import argparse
 from datetime import datetime
 import os
 import pickle
-import random
 import sys
 
 from attrdict import AttrDict #type:ignore
@@ -38,10 +37,13 @@ def main():
     init_p_perms_by_seed:Dict[int, List[build.PatternedPermutation]] = {}
     states_by_seed:Dict[int, Dict[int, AttrDict]] = {}
 
-    for seed in range(args.seed, args.seed + args.n_run):
+    start_seed = args.seed
+    start_init_seed = args.init_seed
+
+    for seed in range(start_seed, start_seed + args.n_run):
 
         args.seed = seed
-        args.init_seed = (seed - args.seed) + args.init_seed
+        args.init_seed = (seed - start_seed) + start_init_seed
         args.output_filename = '{}/{}.txt'.format(args.output, datetime.now().strftime("%Y%m%d_%H%M%S_%f")) if args.n_run > 1 else '{}.txt'.format(args.output)
 
         init_p_perms_by_seed[args.seed], states_by_seed[args.seed] = run(args, pathdata = pathdata, calc_value = calc_value)
@@ -171,7 +173,7 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
         builder = build.Builder(methods_func_dof = {
             'R': (lambda nodes: build.build_randomly(nodes), 1),
-            'N': (lambda nodes: build.build_with_nearest_neighbor(nodes, bld_dist), 0),
+            'G': (lambda nodes: build.build_greedy(nodes, bld_dist), 0),
         }, clusters_nodes = clusters_nodes)
 
         init_p_perms.extend(builder.build_with_dof(n_special))
