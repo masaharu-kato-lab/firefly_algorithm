@@ -105,7 +105,6 @@ def optimize(
 ) -> Dict[int, AttrDict]:
 
     np.random.seed(seed = args.seed)
-    print('optimize with seed={}'.format(args.seed))
 
     states:Dict[int, AttrDict] = {}
 
@@ -152,7 +151,6 @@ def optimize(
 def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
     np.random.seed(seed = args.init_seed)
-    print('initialize with seed={}'.format(args.init_seed))
 
     bld_dist = distances.get_func(args.init_bld_dist, pathdata = pathdata) # , w_angle=args.init_bld_dist_w
     cls_dist = distances.get_func(args.init_cls_dist, pathdata = pathdata) # , w_angle=args.init_cls_dist_w
