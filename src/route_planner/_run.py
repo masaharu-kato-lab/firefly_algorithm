@@ -175,7 +175,7 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
         builder = build.Builder(methods_func_dof = {
             'R': (lambda nodes: build.build_randomly(nodes), 1),
-            'N': (lambda nodes: build.build_greedy(nodes, bld_dist), 0),
+            'G': (lambda nodes: build.build_greedy(nodes, bld_dist), 0),
         }, clusters_nodes = clusters_nodes)
 
         init_p_perms.extend(builder.build_with_dof(n_special))

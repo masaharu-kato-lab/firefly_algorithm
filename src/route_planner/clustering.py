@@ -1,6 +1,5 @@
 import numpy as np #type:ignore
 import copy
-import random
 
 from typing import Callable, Dict, List, Tuple
 Node = Tuple[int, int]

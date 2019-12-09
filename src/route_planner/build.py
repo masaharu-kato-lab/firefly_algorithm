@@ -99,7 +99,7 @@ class Builder:
         return number_of_patterns
 
 
-def build_with_nearest_neighbor(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> PatternedPermutation:
+def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> PatternedPermutation:
 
     ordered_nodes = []
     remain_nodes = copy.copy(nodes)
@@ -116,7 +116,9 @@ def build_with_nearest_neighbor(nodes:List[Node], dist:Callable, nn_n_random:int
         ordered_nodes.append(last_node)
         remain_nodes.pop(min_id)
 
-    return PatternedPermutation(ordered_nodes, 'N')
+    if remain_nodes: raise RuntimeError('Remain nodes is not empty.')
+
+    return PatternedPermutation(ordered_nodes, 'G')
 
 
 def build_randomly(nodes:List[Node]) -> PatternedPermutation:
