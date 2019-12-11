@@ -14,6 +14,8 @@ class World:
             mapper = pickle.load(f)
 
         self.world = mapper.world
+        self.nodes = mapper.default_targets
+        self.depot_pos = mapper.starting_point[0]
 
         
 
@@ -21,6 +23,6 @@ class World:
         plt.imshow(
             self.world,
             interpolation="none",
-            cmap=mpl.colors.ListedColormap(['white', 'black', 'red', 'orange'])
+            cmap=mpl.colors.ListedColormap(['white', '#BBBBBB', 'red', 'orange'])
         )
 

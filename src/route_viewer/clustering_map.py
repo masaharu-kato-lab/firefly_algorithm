@@ -10,7 +10,7 @@ import random
 import numpy as np #type:ignore
 
 sys.path.append(os.path.dirname(__file__) + '/../route_planner')
-import init #type:ignore
+import clustering
 import route #type:ignore
 import distances #type:ignore
 
@@ -42,7 +42,7 @@ def main():
     for ni in range(args.seed, args.seed + args.number):
         np.random.seed(seed = ni)
         cls_dist = distances.get_func(args.cls_dist, pathdata = pathdata)
-        clusters_nodes = init.clustering.get_function(method = args.cls_method, nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist)()
+        clusters_nodes = clustering.get_function(method = args.cls_method, nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist)()
         plt.figure()
         world.plot_world()
 
@@ -55,7 +55,7 @@ def main():
             )
 
         if args.output is not None:
-            plt.savefig(args.output.format(i=ni))
+            plt.savefig(args.output.format(seed=ni))
         else:
             plt.show()
         plt.close()

@@ -48,6 +48,8 @@ def main():
 
 
     plt.legend()
+    plt.xlabel('updates')
+    plt.ylabel("best firefly's luminosity")
 
     if args.title: plt.title(args.title)
 
