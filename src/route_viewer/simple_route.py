@@ -17,6 +17,7 @@ def main():
     argp.add_argument('-mi', '--mapper_input', type=str, default='res/pathdata/opu.pickle', help='Input mapper pickle file path')
     argp.add_argument('-s', '--seed', type=int, help='Seed value to draw')
     argp.add_argument('-best', '--best_only', action='store_true', help='Only draws best solution')
+    argp.add_argument('-worst', '--worst_only', action='store_true', help='Only draws worst solution')
     argp.add_argument('-lg', '--show_legend', action='store_true', help='show legend')
     argp.add_argument('-lgx', '--legend_px', type=float, default=0.88, help='legend position x')
     argp.add_argument('-lgy', '--legend_py', type=float, default=0.35, help='legend position y')
@@ -38,6 +39,8 @@ def main():
     fstates = out_bin.final_states_by_seed
 
     if args.best_only:
+        items = [min(fstates.items(), key=lambda kv: kv[1].best_plan.value)]
+    elif args.worst_only:
         items = [max(fstates.items(), key=lambda kv: kv[1].best_plan.value)]
     elif args.seed is None:
         items = fstates.items()
