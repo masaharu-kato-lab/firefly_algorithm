@@ -16,7 +16,7 @@ class PatternedPermutation:
         if not pattern: raise RuntimeError('Pattern is empty.')
 
 
-def chain_patterned_permutations(_perms:Iterable[PatternedPermutation]):
+def chain_patterned_permutations(_perms:Iterable[PatternedPermutation]) -> PatternedPermutation:
     perms = list(_perms)
     return PatternedPermutation(
         [*chain.from_iterable(p.nodes for p in perms)],
