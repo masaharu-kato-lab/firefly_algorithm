@@ -26,11 +26,10 @@ def parse():
     argp.add_argument('-fmi' , '--format_init'     , type=str  , default =None    , help='Format text to display initial individuals')
     argp.add_argument('-fmt' , '--format_itr'      , type=str  , default =None    , help='Format text to display individuals while iteration')
     argp.add_argument('-fmtt', '--format_terminate', type=str  , default =None    , help='Format text to message for terminate')
+    argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="rg"    , choices=["r", "rg"], help="Building method in initialization, 'r' for no random only, 'rg' for both random and greedy.")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
     argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
     argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
-    # argp.add_argument('-ibdw', '--init_bld_dist_w' , type=float, default =None    , help="Weight of distance method in initial building (only works when `--init_bld_dist` is 'polar')")
-    # argp.add_argument('-icdw', '--init_cls_dist_w' , type=float, default =None    , help="Weight of distance method in initial clustering (only works when `--init_cls_dist` is 'polar')")
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
     argp.add_argument('-irr' , '--init_random_rate', type=float, default =0.0     , help="Rate of random generation in initialization building")
     argp.add_argument('-uja' , '--use_jordan_alpha', action='store_true'          , help="Use jordan's method in alpha step")
@@ -53,12 +52,6 @@ def parse():
 
     if args.init_cls_dist is None: args.init_cls_dist = 'aster'
     if args.init_bld_dist is None: args.init_bld_dist = 'aster'
-
-    # if args.init_bld_dist != 'polar' and args.init_bld_dist_w is not None:
-    #     raise RuntimeError("`--init_bld_dist_w` is not used when `--init_bld_dist` is not 'polar'")
-
-    # if args.init_cls_dist != 'polar' and args.init_cls_dist_w is not None:
-    #     raise RuntimeError("`--init_cls_dist_w` is not used when `--init_cls_dist` is not 'polar'")
 
     if args.n_updates is not None:
         if args.n_min_iterate is not None: raise RuntimeError('Cannot use `--n_min_iterate` with `--n_updates`.')

@@ -171,12 +171,20 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
     if n_special:
         clusters_nodes = clustering.get_function(method = args.init_cls_method, nodes = pathdata.nodes, n_cluster = args.init_n_cls, dist = cls_dist)()
 
-        builder = build.Builder(methods_func_dof = {
-            'R': (lambda nodes: build.build_randomly(nodes), 1),
-            'G': (lambda nodes: build.build_greedy(nodes, bld_dist), 0),
-        }, clusters_nodes = clusters_nodes)
+        if args.init_bld_method == 'rg':
+            builder = build.Builder(methods_func_dof = {
+                'R': (lambda nodes: build.build_randomly(nodes), 1),
+                'G': (lambda nodes: build.build_greedy(nodes, bld_dist), 0),
+            }, clusters_nodes = clusters_nodes)
+            init_p_perms.extend(builder.build_with_dof(n_special))
 
-        init_p_perms.extend(builder.build_with_dof(n_special))
+        elif args.init_bld_method == 'r':
+            for _ in range(n_special):
+                init_p_perms.append(build.chain_patterned_permutations([build.build_randomly(c_nodes) for c_nodes in clusters_nodes]))
+
+        else:
+            raise RuntimeError('Unknown initialzation building method.')
+
 
     # Validation
     if not all([permutation.is_valid(p_perm.nodes, pathdata.nodes) for p_perm in init_p_perms]):
