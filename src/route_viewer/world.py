@@ -19,10 +19,25 @@ class World:
 
         
 
-    def plot_world(self):
+    def plot_world(self, *, color = 'black', bgcolor = 'white'):
         plt.imshow(
             self.world,
             interpolation="none",
-            cmap=mpl.colors.ListedColormap(['white', '#BBBBBB', 'red', 'orange'])
+            cmap=mpl.colors.ListedColormap([bgcolor, color, 'red', 'orange'])
         )
 
+
+    def plot_nodes(self, **options):
+        plt.scatter(
+            [p[0] for p in self.nodes],
+            [p[1] for p in self.nodes],
+            **options
+        )
+
+
+    def plot_depot(self, **options):
+        plt.scatter(
+            self.depot_pos[0],
+            self.depot_pos[1],
+            **options
+        )
