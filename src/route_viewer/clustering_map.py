@@ -44,7 +44,7 @@ def main():
         cls_dist = distances.get_func(args.cls_dist, pathdata = pathdata)
         clusters_nodes = clustering.get_function(method = args.cls_method, nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist)()
         plt.figure()
-        world.plot_world()
+        world.plot_world(color='#BBBBBB')
 
         for i, nodes in enumerate(clusters_nodes):
             plt.scatter(nodes[0][0], nodes[0][1], color=cmap(i), marker='x')

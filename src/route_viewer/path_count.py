@@ -48,7 +48,7 @@ def main():
         )
         
         _, ax = plt.subplots()
-        world.plot_world()
+        world.plot_world(color='#BBBBBB')
         ax.add_collection(lines)
         ax.autoscale()
 
