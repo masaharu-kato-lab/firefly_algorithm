@@ -8,14 +8,14 @@ import sys
 from attrdict import AttrDict #type:ignore
 import numpy as np #type:ignore
 
-import _arguments
-import build
-import clustering
-import distances
-import firefly
-import log
-import permutation
-import route
+from route_planner import _arguments
+from route_planner import build
+from route_planner import clustering
+from route_planner import distances
+from route_planner import firefly
+from route_planner import log
+from route_planner import permutation
+from route_planner import route
 
 from typing import Callable, Dict, List, Optional, Tuple
 Node = Tuple[int, int]
@@ -152,8 +152,8 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
     np.random.seed(seed = args.init_seed)
 
-    bld_dist = distances.get_func(args.init_bld_dist, pathdata = pathdata) # , w_angle=args.init_bld_dist_w
-    cls_dist = distances.get_func(args.init_cls_dist, pathdata = pathdata) # , w_angle=args.init_cls_dist_w
+    bld_dist = distances.get_function(args.init_bld_dist, pathdata = pathdata) # , w_angle=args.init_bld_dist_w
+    cls_dist = distances.get_function(args.init_cls_dist, pathdata = pathdata) # , w_angle=args.init_cls_dist_w
 
     n_random = round(args.init_random_rate * args.n_indiv)
     n_special = args.n_indiv - n_random
@@ -169,7 +169,9 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
     # Cluster-patterned generation
     if n_special:
-        clusters_nodes = clustering.get_function(method = args.init_cls_method, nodes = pathdata.nodes, n_cluster = args.init_n_cls, dist = cls_dist)()
+        clustering_process = clustering.Clustering(nodes = pathdata.nodes, n_cluster = args.init_n_cls, dist = cls_dist, allow_same_dist = args.allow_same_dist)
+
+        clusters_nodes = clustering_process.get_function(args.init_cls_method)()
 
         if args.init_bld_method == 'rg':
             builder = build.Builder(methods_func_dof = {

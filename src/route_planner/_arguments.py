@@ -28,20 +28,21 @@ def parse():
     argp.add_argument('-fmtt', '--format_terminate', type=str  , default =None    , help='Format text to message for terminate')
     argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="rg"    , choices=["r", "rg"], help="Building method in initialization, 'r' for no random only, 'rg' for both random and greedy.")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
-    argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
-    argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
+    argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=['aster', 'euclid', 'aster_euclid', 'angle', 'polar'], help="Distance method in initial building")
+    argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=['aster', 'euclid', 'aster_euclid', 'angle', 'polar'], help="Distance method in initial clustering (only works when clustering is available)")
+    argp.add_argument('-icas', '--init_cls_a_sdist', action='store_true'          , help='Allow same distance between nodes (select randomly) in initial clustering')
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
     argp.add_argument('-irr' , '--init_random_rate', type=float, default =0.0     , help="Rate of random generation in initialization building")
     argp.add_argument('-igrn', '--init_greedy_rnum', type=int  , default =0       , help='Number of nodes which is generated randomly in the greedy arrangement in initial building')
     argp.add_argument('-uja' , '--use_jordan_alpha', action='store_true'          , help="Use jordan's method in alpha step")
-    argp.add_argument('-sp'  ,'--show_progress'    , action='store_true'          , help='Show progress to stderr')
-    argp.add_argument('-nlo' ,'--no_log_output'    , action='store_true'          , help='Do not output log (text) file')
-    argp.add_argument('-nbo' ,'--no_binary_output' , action='store_true'          , help='Do not output binary (pickle) file')
-    argp.add_argument('-vb'  ,'--verbose'          , action='store_true'          , help='Whether to output details for debugging')
-    argp.add_argument('-sc'  ,'--skip_check'       , action='store_true'          , help='Whether to skip check validation of permutation on each iteration')
-    argp.add_argument('-io'  ,'--init_only'        , action='store_true'          , help='Run only initialization')
-    argp.add_argument('-sto' ,'--stdout'           , action='store_true'          , help='Whether output results to stdout or not (output to automatically created file)')
-    argp.add_argument('-nio' ,'--no_init_output'   , action='store_true'          , help='Not output initial individuls')
+    argp.add_argument('-sp'  , '--show_progress'   , action='store_true'          , help='Show progress to stderr')
+    argp.add_argument('-nlo' , '--no_log_output'   , action='store_true'          , help='Do not output log (text) file')
+    argp.add_argument('-nbo' , '--no_binary_output', action='store_true'          , help='Do not output binary (pickle) file')
+    argp.add_argument('-vb'  , '--verbose'         , action='store_true'          , help='Whether to output details for debugging')
+    argp.add_argument('-sc'  , '--skip_check'      , action='store_true'          , help='Whether to skip check validation of permutation on each iteration')
+    argp.add_argument('-io'  , '--init_only'       , action='store_true'          , help='Run only initialization')
+    argp.add_argument('-sto' , '--stdout'          , action='store_true'          , help='Whether output results to stdout or not (output to automatically created file)')
+    argp.add_argument('-nio' , '--no_init_output'  , action='store_true'          , help='Not output initial individuls')
     args = argp.parse_args()
 
     if args.init_cls_method == "none":
@@ -51,8 +52,8 @@ def parse():
     if args.binary_output is not None and args.no_binary_output:
         raise RuntimeError("`--no_binary_output` specified, but `--binary_output` specified.")
 
-    if args.init_cls_dist is None: args.init_cls_dist = 'aster'
-    if args.init_bld_dist is None: args.init_bld_dist = 'aster'
+    if args.init_cls_dist is None: args.init_cls_dist = 'aster_euclid'
+    if args.init_bld_dist is None: args.init_bld_dist = 'aster_euclid'
 
     if args.n_updates is not None:
         if args.n_min_iterate is not None: raise RuntimeError('Cannot use `--n_min_iterate` with `--n_updates`.')

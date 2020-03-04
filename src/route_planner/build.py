@@ -3,7 +3,7 @@ from itertools import chain, product
 
 import numpy as np #type:ignore
 
-import nd_equation
+from common_library import nd_equation
 
 from typing import Any, Callable, Dict, Iterable, List, Tuple, Union, Optional
 Node = Tuple[int, int]
@@ -113,9 +113,10 @@ def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 0, start_nod
             if last_node is None: raise RuntimeError('Start node required.')
             dists = np.array([dist(last_node, node) for node in remain_nodes])
             min_ids = np.where(dists == dists.min())[0]
-            if len(min_ids) > 1: print("choice one from multiple.")
+            # if len(min_ids) > 1: print("choice one from multiple.")
             target_id = np.random.choice(min_ids) if len(min_ids) > 1 else min_ids[0]
-        
+            # TODO: ランダム性の扱い
+
         last_node = remain_nodes[target_id]
         ordered_nodes.append(last_node)
         remain_nodes.pop(target_id)

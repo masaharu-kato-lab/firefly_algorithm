@@ -1,8 +1,9 @@
 import copy
 import math
 import pickle
+import sys
 from functools import total_ordering
-
+from route_planner import map_converter
 
 # from types import List, Dict, Tuple, Node
 
@@ -15,6 +16,7 @@ Time = float
 class PathData:
 
     def __init__(self, filepath : str):
+        sys.modules['map_converter'] = map_converter
         with open(filepath, "rb") as f:
             mapper = pickle.load(f)
 

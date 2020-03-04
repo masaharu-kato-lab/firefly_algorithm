@@ -1,18 +1,19 @@
 #!env/bin/python
 import pickle
 import argparse
-import matplotlib.pyplot as plt #type:ignore
 import sys
 import os
 import json
-from world import World
 import random
+
+import matplotlib.pyplot as plt #type:ignore
 import numpy as np #type:ignore
 
-sys.path.append(os.path.dirname(__file__) + '/../route_planner')
-import clustering
-import route #type:ignore
-import distances #type:ignore
+# sys.path.append(os.path.dirname(__file__) + '/../route_planner')
+from world import World
+from route_planner import clustering
+from route_planner import route
+from route_planner import distances
 
 def main():
 
@@ -22,8 +23,9 @@ def main():
     argp.add_argument('-s'  , '--seed'        , type=int, required=True, help='Seed value for random in initialization')
     argp.add_argument('-n'  , '--number'      , type=int, default =1   , help='Number of generating')
     argp.add_argument('-cm' , '--cls_method'  , type=str, required=True, choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
-    argp.add_argument('-cdm', '--cls_dist'    , type=str, required=True, choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
+    argp.add_argument('-cdm', '--cls_dist'    , type=str, required=True, choices=['aster', 'euclid', 'aster_euclid', 'angle', 'polar'], help="Distance method in initial clustering (only works when clustering is available)")
     argp.add_argument('-nc' , '--n_cls'       , type=int, required=True, help="Number of clusters (only works when `--cls_method` is not 'none')")
+    argp.add_argument('-cas', '--cls_a_sdist' , action='store_true'    , help='Allow same distance between nodes (select randomly) in clustering')
     # argp.add_argument('-bm' , '--bld_method' , type=str  , default ="cpnn"  , choices=["rnn", "cpnn"], help="Building method in initialization, 'rnn' (mix of random generation and nearest neighbor), 'cpnn' (cluster-patterned nearest neighbor)")
     # argp.add_argument('-bdm', '--bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
    
@@ -41,8 +43,10 @@ def main():
     
     for ni in range(args.seed, args.seed + args.number):
         np.random.seed(seed = ni)
-        cls_dist = distances.get_func(args.cls_dist, pathdata = pathdata)
-        clusters_nodes = clustering.get_function(method = args.cls_method, nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist)()
+        cls_dist = distances.get_function(args.cls_dist, pathdata = pathdata)
+        clustering_process = clustering.Clustering(nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist, allow_same_dist = args.cls_a_sdist)
+        clusters_nodes = clustering_process.get_function(args.cls_method)()
+
         plt.figure()
         world.plot_world()
 

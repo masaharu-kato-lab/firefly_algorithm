@@ -2,10 +2,9 @@ import copy
 import time
 
 from attrdict import AttrDict #type:ignore
-
 import numpy as np #type:ignore
 
-import permutation
+from common_library import permutation
 
 from typing import Any, Callable, cast, Dict, List, Optional, Tuple
 Node = Tuple[int, int]
