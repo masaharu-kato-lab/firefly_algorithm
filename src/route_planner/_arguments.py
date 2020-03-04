@@ -32,6 +32,7 @@ def parse():
     argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
     argp.add_argument('-irr' , '--init_random_rate', type=float, default =0.0     , help="Rate of random generation in initialization building")
+    argp.add_argument('-igrn', '--init_greedy_rnum', type=int  , default =0       , help='Number of nodes which is generated randomly in the greedy arrangement in initial building')
     argp.add_argument('-uja' , '--use_jordan_alpha', action='store_true'          , help="Use jordan's method in alpha step")
     argp.add_argument('-sp'  ,'--show_progress'    , action='store_true'          , help='Show progress to stderr')
     argp.add_argument('-nlo' ,'--no_log_output'    , action='store_true'          , help='Do not output log (text) file')
