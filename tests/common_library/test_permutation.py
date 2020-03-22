@@ -6,7 +6,7 @@ nodes = [chr(i) for i in range(ord('A'), ord('F')+1)]
 @pytest.mark.parametrize(
     'perm, res', [
         ('ABCDEF', True),
-        ('AFDCAB', True),
+        ('AFDCAB', False),
         ('BFCADE', True),
         ('CADBEF', True),
         ('BAFADC', False),

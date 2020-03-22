@@ -40,3 +40,11 @@ def solve(coefs:list, *, prec:float, init:float = 0):
         init = init
     )
 
+
+def assign(coefs:list, var:float):
+    c_var = 1
+    ret = 0
+    for coef in coefs:
+        ret += c_var * coef
+        c_var *= var
+    return ret

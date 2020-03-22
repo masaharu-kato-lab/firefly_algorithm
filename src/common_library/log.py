@@ -5,13 +5,13 @@ from datetime import datetime
 class FileWriter:
 
     def __init__(self, *,
-        filepath:str=None,
-        outobj=None,
-        no_out:bool=False,
-        flush_each:bool=False,
-        no_flush:bool=False,
-        clear_exist:bool=False,
-        make_dir:bool=True,
+        filepath   :str  = None,
+        outobj           = None,
+        no_out     :bool = False,
+        flush_each :bool = False,
+        no_flush   :bool = False,
+        clear_exist:bool = False,
+        make_dir   :bool = True,
     ):
         
         if not no_out and not filepath and not outobj:
@@ -33,7 +33,7 @@ class FileWriter:
         self.write_raw(''.join([content + '\n' for content in contents]))
         return self
 
-
+    # write raw content
     def write_raw(self, content:str):
         self.buffer += content
         if self.flush_each: self.flush()

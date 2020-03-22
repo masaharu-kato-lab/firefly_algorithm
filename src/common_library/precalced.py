@@ -2,13 +2,13 @@ from typing import Any, Callable, List, Dict, Tuple, Iterable
 import itertools
 
 def precalced(func:Callable, args_list:Iterable[Iterable[Any]]) -> Callable:
-    return lambda *args: precalced_with_vdict(generate_vdict(func, args_list))
+    return precalced_with_vdict(generate_vdict(func, args_list))
 
 def precalced_kw(func:Callable, kwargs_list:Iterable[Dict[str, Any]]) -> Callable:
     return lambda **kwargs: precalced_with_kwvdict(generate_kwvdict(func, kwargs_list))
 
 def precalced_distance(dist_func:Callable, vecs:List[Any]) -> Callable:
-    return lambda *args: precalced_with_vdict(generate_distance_vdict(dist_func, vecs))
+    return precalced_with_vdict(generate_distance_vdict(dist_func, vecs))
 
 
 def precalced_with_vdict(vdict:Dict[Iterable[Any], Any]) -> Callable:
