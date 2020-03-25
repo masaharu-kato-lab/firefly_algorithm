@@ -1,5 +1,5 @@
 import pytest #type:ignore
-from common_library import permutation
+from common import permutation
 
 nodes = [chr(i) for i in range(ord('A'), ord('F')+1)]
 

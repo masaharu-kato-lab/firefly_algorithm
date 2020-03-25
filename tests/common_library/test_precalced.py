@@ -1,7 +1,7 @@
 import itertools
 import pytest #type:ignore
 import numpy as np #type:ignore
-from common_library import precalced
+from common import precalced
 
 params = [
     'func, args_list, ret',[

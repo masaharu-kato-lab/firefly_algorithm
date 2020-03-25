@@ -1,5 +1,5 @@
 import pytest
-from common_library import nd_equation
+from common import nd_equation
 
 @pytest.mark.parametrize(
     'coefs, prec, ret', [

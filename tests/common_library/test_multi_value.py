@@ -1,5 +1,5 @@
 import pytest #type:ignore
-from common_library.multi_value import MultiValue
+from common.multi_value import MultiValue
 
 vcases = [
     ((10, 20), (15, 25)),

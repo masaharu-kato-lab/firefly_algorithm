@@ -1,6 +1,6 @@
 from route_planner.clustering import Clustering
 import field_for_test as fl
-from common_library import permutation
+from common import permutation
 import itertools
 
 n_cluster = 3

@@ -1,6 +1,6 @@
 import numpy as np
 from route_planner import build
-from common_library import permutation
+from common import permutation
 import field_for_test as fl
 
 
