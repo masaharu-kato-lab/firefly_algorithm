@@ -1,12 +1,12 @@
 from typing import Any, Callable, List, Dict, Tuple
 import numpy as np  #type:ignore
-from route_planner import route
-from common_library.precalced import precalced_distance
-from common_library.basic_distance import euclid, euclid_2s, cos_sim
-from common_library.multi_value import MultiValue
+from route_planner import drone_simulator
+from common.precalced import precalced_distance
+from common.basic_distance import euclid, euclid_2s, cos_sim
+from common.multi_value import MultiValue
 
 # get specified distance function
-def get_function(name:str, *, pathdata:route.PathData, angle_weight:float=None) -> Callable:
+def get_function(name:str, *, pathdata:drone_simulator.PathData, angle_weight:float=None) -> Callable:
 
     # convert `name` to lower cases
     name = name.lower()
