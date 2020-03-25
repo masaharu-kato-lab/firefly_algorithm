@@ -6,20 +6,21 @@ import pickle
 import sys
 
 from attrdict import AttrDict #type:ignore
-import numpy as np #type:ignore
+import random
 
 from route_planner import _arguments
 from route_planner import build
-from route_planner import clustering
+from src.common import arrangement
+from src.common import clustering
 from route_planner import distances
-from route_planner import firefly
-from route_planner import log
-from route_planner import permutation
-from route_planner import route
+from src.common import discrete_firefly
+from src.common import log
+from src.common import permutation
+from route_planner import drone_simulator
 
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, Set, List, Optional, Tuple
 Node = Tuple[int, int]
-Value = route.Plan
+Value = drone_simulator.Plan
 
 
 
@@ -32,7 +33,7 @@ def main():
         return -1
 
 
-    pathdata = route.PathData(args.input)
+    pathdata = drone_simulator.PathData(args.input)
     calc_value = get_calc_value(args, pathdata=pathdata)
     init_p_perms_by_seed:Dict[int, List[build.PatternedPermutation]] = {}
     states_by_seed:Dict[int, Dict[int, AttrDict]] = {}
@@ -64,7 +65,7 @@ def main():
 
 
 def run(args, *,
-    pathdata  : route.PathData,
+    pathdata  : drone_simulator.PathData,
     calc_value : Callable,
 ) -> Dict[int, AttrDict]:
 
@@ -85,7 +86,7 @@ def run(args, *,
 
     if not args.init_only:
         logfile.write('#Iterations')
-        states = optimize(args, logfile, nodes=pathdata.nodes, calc_value=calc_value, init_indivs=init_indivs, init_val_of=val_of)
+        states = optimize(args, logfile, node_set=pathdata.node_set, calc_value=calc_value, init_indivs=init_indivs, init_val_of=val_of)
         logfile.write('#END')
     
     logfile.write('#EOF').flush()
@@ -98,19 +99,19 @@ def optimize(
     args,
     logfile  : log.FileWriter,
     *,
-    nodes    : List[Node],
+    node_set : Set[Node],
     calc_value: Callable,
     init_indivs : List[List[Node]],
     init_val_of : List[Value],
 ) -> Dict[int, AttrDict]:
 
-    np.random.seed(seed = args.seed)
+    random.seed(args.seed)
 
     states:Dict[int, AttrDict] = {}
 
     # Run firefly algorithm
-    for state in firefly.run(
-        nodes            = nodes,
+    for state in discrete_firefly.run(
+        node_set         = node_set,
         init_indivs      = init_indivs,
         init_val_of      = init_val_of,
         calc_value       = calc_value,
@@ -148,9 +149,9 @@ def optimize(
 
 
 
-def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
+def init(args, *, pathdata:drone_simulator.PathData) -> List[build.PatternedPermutation]:
 
-    np.random.seed(seed = args.init_seed)
+    random.seed(args.init_seed)
 
     bld_dist = distances.get_function(args.init_bld_dist, pathdata = pathdata) # , w_angle=args.init_bld_dist_w
     cls_dist = distances.get_function(args.init_cls_dist, pathdata = pathdata) # , w_angle=args.init_cls_dist_w
@@ -165,7 +166,7 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
     # Random generation
     for _ in range(n_random):
-        init_p_perms.append(build.build_randomly(pathdata.nodes))
+        init_p_perms.append(arrangement.randomly(pathdata.nodes))
 
     # Cluster-patterned generation
     if n_special:
@@ -175,14 +176,14 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
         if args.init_bld_method == 'rg':
             builder = build.Builder(methods_func_dof = {
-                'R': (lambda nodes: build.build_randomly(nodes), 1),
-                'G': (lambda nodes: build.build_greedy(nodes, bld_dist, nn_n_random=args.init_greedy_rnum, start_node=pathdata.home_poses[0]), 0),
+                'R': (lambda nodes: arrangement.randomly(nodes), 1),
+                'G': (lambda nodes: arrangement.greedy(nodes, bld_dist, nn_n_random=args.init_greedy_rnum, start_node=pathdata.home_poses[0]), 0),
             }, clusters_nodes = clusters_nodes)
             init_p_perms.extend(builder.build_with_dof(n_special))
 
         elif args.init_bld_method == 'r':
             for _ in range(n_special):
-                init_p_perms.append(build.chain_patterned_permutations([build.build_randomly(c_nodes) for c_nodes in clusters_nodes]))
+                init_p_perms.append(build.chain_patterned_permutations([arrangement.randomly(c_nodes) for c_nodes in clusters_nodes]))
 
         else:
             raise RuntimeError('Unknown initialzation building method.')
@@ -196,11 +197,11 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
 
 
-def get_calc_value(args, *, pathdata:route.PathData) -> Callable:
+def get_calc_value(args, *, pathdata:drone_simulator.PathData) -> Callable:
 
-    plan_generator = route.PlanGenerator(
+    plan_generator = drone_simulator.PlanGenerator(
         pathdata = pathdata,
-        drone_prop = route.DroneProperty(pathdata),
+        drone_prop = drone_simulator.DroneProperty(pathdata),
         n_drones = args.n_drones,
         safety_weight = args.safety_weight,
         distance_weight = args.distance_weight,
