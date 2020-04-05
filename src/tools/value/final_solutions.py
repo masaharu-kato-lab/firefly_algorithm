@@ -3,11 +3,8 @@ import argparse
 import os
 import pickle
 import sys
-
-from attrdict import AttrDict #type:ignore
 import matplotlib.pyplot as plt #type:ignore
 
-sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 
 def main():
 

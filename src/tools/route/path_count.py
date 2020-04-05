@@ -3,7 +3,6 @@ import argparse
 import os
 import pickle
 
-from attrdict import AttrDict #type:ignore
 import matplotlib.pyplot as plt #type:ignore
 from matplotlib.collections import LineCollection #type:ignore
 

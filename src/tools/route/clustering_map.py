@@ -7,7 +7,6 @@ import json
 import random
 
 import matplotlib.pyplot as plt #type:ignore
-import numpy as np #type:ignore
 
 # sys.path.append(os.path.dirname(__file__) + '/../route_planner')
 from world import World
@@ -42,7 +41,7 @@ def main():
     if args.output: os.makedirs(os.path.dirname(args.output), exist_ok=True)
     
     for ni in range(args.seed, args.seed + args.number):
-        np.random.seed(seed = ni)
+        random.seed(ni)
         cls_dist = distances.get_function(args.cls_dist, pathdata = pathdata)
         clustering_process = clustering.Clustering(nodes = pathdata.nodes, n_cluster = args.n_cls, dist = cls_dist, allow_same_dist = args.cls_a_sdist)
         clusters_nodes = clustering_process.get_function(args.cls_method)()

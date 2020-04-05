@@ -7,8 +7,6 @@ import os
 from itertools import chain
 import statistics
 
-from attrdict import AttrDict #type:ignore
-
 from typing import Any, Callable, Dict, Iterable, Iterator, List
 
 sys.path.append(os.path.dirname(__file__) + '/../route_planner')

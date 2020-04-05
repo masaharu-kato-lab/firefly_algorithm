@@ -5,7 +5,6 @@ import os
 import pickle
 import sys
 
-from attrdict import AttrDict #type:ignore
 import matplotlib.pyplot as plt #type:ignore
 
 from typing import Any, Callable, Dict, Iterable, Iterator, List
