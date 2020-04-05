@@ -1,4 +1,3 @@
-import numpy as np
 
 def load(filepath : str):
 
@@ -33,11 +32,10 @@ def data_part(file, options, name):
 def node_coord_section(file, options):
 
     length = int(options['DIMENSION'])
-    coords = dict()
+    coords = {}
 
     for _ in range(length):
         v = file.readline().rstrip('\r\n').split()
-        coords[int(v[0].strip())] = np.array(list(map(float, v[1:])))
+        coords[int(v[0].strip())] = list(map(float, v[1:]))
 
     return coords
-

@@ -5,18 +5,15 @@ import os
 import pickle
 import sys
 
-from attrdict import AttrDict #type:ignore
 import random
 
-from route_planner import _arguments
-from route_planner import build
+from src.route_planner import _arguments
+from src.route_planner import generate
 from src.common import arrangement
 from src.common import clustering
-from route_planner import distances
-from src.common import discrete_firefly
-from src.common import log
-from src.common import permutation
-from route_planner import drone_simulator
+from src.route_planner import distances
+from src.common import firefly
+from src.route_planner import drone_simulator
 
 from typing import Callable, Dict, Set, List, Optional, Tuple
 Node = Tuple[int, int]
@@ -196,78 +193,6 @@ def init(args, *, pathdata:drone_simulator.PathData) -> List[build.PatternedPerm
     return init_p_perms
 
 
-
-def get_calc_value(args, *, pathdata:drone_simulator.PathData) -> Callable:
-
-    plan_generator = drone_simulator.PlanGenerator(
-        pathdata = pathdata,
-        drone_prop = drone_simulator.DroneProperty(pathdata),
-        n_drones = args.n_drones,
-        safety_weight = args.safety_weight,
-        distance_weight = args.distance_weight,
-    )
-
-    return lambda perm : plan_generator.make([perm])
-
-
-
-def output_values(args, init_p_perms:List[build.PatternedPermutation], val_of:list, logfile:log.FileWriter):
-
-    for i, (p_perm, val) in enumerate(zip(init_p_perms, val_of)):
-        logfile.write(args.format_init.format(
-            i    = i,
-            v    = val.value,
-            sv   = val.average_safety,
-            dv   = val.total_distance,
-            log  = val.text,
-            pat  = pattern_to_str(p_perm.pattern)
-        ))
-
-
-def pattern_to_str(pattern):
-    if isinstance(pattern, tuple):
-        return '(' + ' '.join(map(pattern_to_str, pattern)) + ')'
-
-    if isinstance(pattern, str):
-        return pattern
-    
-    raise RuntimeError('Invalid pattern type.')
-
-
-def make_continue_coef(args):
-
-    if args.n_updates:
-        return lambda idv: idv.n_updates <= args.n_updates
-
-    if args.n_itr_steady:
-        check_steady = lambda idv: (idv.itr - idv.best_itr) < args.n_itr_steady
-        if args.n_min_iterate:
-            if args.n_max_iterate:
-                if args.n_min_iterate > args.n_max_iterate:
-                    raise RuntimeError('Maximum iteration is smaller than minimum iteration.')
-                return lambda idv: idv.itr <= args.n_min_iterate or (idv.itr <= args.n_max_iterate and check_steady(idv))
-            return lambda idv: idv.itr <= args.n_min_iterate or check_steady(idv)
-        if args.n_max_iterate:
-            return lambda idv: idv.itr <= args.n_max_iterate and check_steady(idv)
-        return lambda idv: check_steady(idv)
-    else:
-        if args.n_min_iterate:
-            return lambda idv: idv.itr <= args.n_min_iterate
-        if args.n_max_iterate:
-            return lambda idv: idv.itr <= args.n_max_iterate
-    
-    raise RuntimeError('All of minimum and maximum and steady iterations are not specified.')
-
-
-
-def make_logfile_writer(args):
-
-    if args.no_log_output:
-        if args.stdout: return log.FileWriter(outobj=sys.stdout)
-        return log.FileWriter(no_out=True)
-
-    if args.stdout: return log.FileWriter(filepath=args.output_filename, outobj=sys.stdout)
-    return log.FileWriter(filepath=args.output_filename)
 
 
 

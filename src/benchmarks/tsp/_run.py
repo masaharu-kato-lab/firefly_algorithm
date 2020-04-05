@@ -3,7 +3,6 @@ import tsp.distance
 import objects
 import argparse
 import distance
-import output
 
 def main():
 
