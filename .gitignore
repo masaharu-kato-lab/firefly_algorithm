@@ -110,8 +110,8 @@ venv.bak/
 .vscode/launch.json
 
 # output folders and files
-out/
-logs/
+/out/
+/logs/
 nohup.out
 
 # directory for json file for parun
@@ -119,3 +119,4 @@ nohup.out
 
 # secret folders and files
 notes/
+/src/trial/
