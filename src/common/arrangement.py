@@ -5,16 +5,12 @@ from typing import Any, Callable, Optional, List, Set, Generic
 Node = Generic('Node', Any)
 
 
-def greedy(
-    graph:Graph[Node],
-    initial_last:Optional[Node] = None,
-    n_random:int=0,
-) -> List[Node]:
+def greedy(graph:Graph[Node], node_set:Set[Node]=None, init_node:Optional[Node]=None, n_random:int=0) -> List[Node]:
 
-    remains = graph.node_set.copy()
+    remains = graph.node_set.copy() if node_set is None else node_set
     ret = random.sample(remains, n_random)
 
-    last = initial_last
+    last = init_node
     while(remains):
         last = graph.nearest(last, remains)
         ret.append(last)

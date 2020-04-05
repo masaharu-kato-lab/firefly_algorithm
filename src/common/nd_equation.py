@@ -2,7 +2,7 @@ import math
 from typing import List, Callable
 
 def calc(coefs:List[float], x:float) -> float:
-    current = 0.0
+    current = 0
     for coef in reversed(coefs):
         current = current * x + coef
     return current
@@ -23,12 +23,11 @@ def get_derivative_calcer(coefs:List[float]) -> Callable:
 
 def solve_with_newton(*, f:Callable, df:Callable, prec:float, init:float = 0):
     x = init
-    c = 0
     while True:
         x_new = x - f(x) / df(x)
-        if abs(x_new - x) < prec : break
+        if abs(x_new - x) < prec:
+            break
         x = x_new
-        c += 1
     return x
 
 
@@ -39,12 +38,3 @@ def solve(coefs:list, *, prec:float, init:float = 0):
         prec = prec,
         init = init
     )
-
-
-def assign(coefs:list, var:float):
-    c_var = 1
-    ret = 0
-    for coef in coefs:
-        ret += c_var * coef
-        c_var *= var
-    return ret
