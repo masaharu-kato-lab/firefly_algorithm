@@ -8,5 +8,5 @@ setup(
     author_email='saa01068@gmail.com',
     description='Implementation of firefly algorithm',
     packages=find_packages(),    
-    install_requires=['attrdict', 'matplotlib', 'mypy', 'numpy'],
+    install_requires=['mypy', 'pytest', 'matplotlib'],
 )
