@@ -1,5 +1,3 @@
-attrdict
-matplotlib
-mypy
-numpy
 pytest
+mypy
+matplotlib
