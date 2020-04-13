@@ -5,7 +5,7 @@ import numpy as np #type:ignore
 
 import nd_equation
 
-from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union, Optional
 Node = Tuple[int, int]
 
 
@@ -99,17 +99,18 @@ class Builder:
         return number_of_patterns
 
 
-def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 1) -> PatternedPermutation:
+def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 0, start_node:Optional[Node] = None) -> PatternedPermutation:
 
     ordered_nodes = []
     remain_nodes = copy.copy(nodes)
-    last_node = None
+    last_node = start_node
 
     for i_itr in range(len(nodes)):
 
         if i_itr < nn_n_random:
             target_id = np.random.choice(range(len(remain_nodes)))
         else:
+            if last_node is None: raise RuntimeError('Start node required.')
             dists = np.array([dist(last_node, node) for node in remain_nodes])
             min_ids = np.where(dists == dists.min())[0]
             if len(min_ids) > 1: print("choice one from multiple.")
