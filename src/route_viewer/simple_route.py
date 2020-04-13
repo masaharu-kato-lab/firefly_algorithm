@@ -16,6 +16,7 @@ def main():
     argp.add_argument('-o', '--output', type=str, default=None, help='Output png image file path (None:default)')
     argp.add_argument('-mi', '--mapper_input', type=str, default='res/pathdata/opu.pickle', help='Input mapper pickle file path')
     argp.add_argument('-s', '--seed', type=int, help='Seed value to draw')
+    argp.add_argument('-nup', '--n_updates', type=int, default=None, help='The number of updates to show')
     argp.add_argument('-best', '--best_only', action='store_true', help='Only draws best solution')
     argp.add_argument('-worst', '--worst_only', action='store_true', help='Only draws worst solution')
     argp.add_argument('-lg', '--show_legend', action='store_true', help='show legend')
@@ -36,25 +37,26 @@ def main():
     # with open('{}/args.json'.format(args.output), mode='w') as f:
     #     json.dump(out_bin.args.__dict__, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(', ', ': '))
     
-    fstates = out_bin.final_states_by_seed
+    states_list = out_bin.states_by_seed
 
     if args.best_only:
-        items = [min(fstates.items(), key=lambda kv: kv[1].best_plan.value)]
+        items = [min(states_list.items(), key=lambda kv: list(kv[1].values())[-1].best_plan.value)]
     elif args.worst_only:
-        items = [max(fstates.items(), key=lambda kv: kv[1].best_plan.value)]
+        items = [max(states_list.items(), key=lambda kv: list(kv[1].values())[-1].best_plan.value)]
     elif args.seed is None:
-        items = fstates.items()
+        items = states_list.items()
     else:
-        items = [(args.seed, fstates[args.seed])]
+        items = [(args.seed, states_list[args.seed])]
 
     cmap = plt.get_cmap("Set2")
 
-    for seed, final_states in items:
+    for seed, states in items:
         print('seed:{}'.format(seed))
-        plan = final_states.best_plan
+        
+        plan = get_state(list(states.values()), args.n_updates).best_plan
 
         plt.figure()
-        world.plot_world()
+        world.plot_world(color='#BBBBBB')
 
         for i, drone in enumerate(plan.drones):
             # print('drone {}:'.format(i), end='')
@@ -85,6 +87,16 @@ def main():
             plt.show()
 
         plt.close()
+
+
+def get_state(states:list, n_updates:int):    
+    if n_updates is None:
+        return states[-1]
+    else:
+        for state in states:
+            if state.n_updates >= n_updates:
+                return state
+    return None
 
 
 if __name__ == '__main__':
