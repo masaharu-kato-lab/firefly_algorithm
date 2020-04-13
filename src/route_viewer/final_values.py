@@ -15,7 +15,7 @@ def main():
     args = argp.parse_args()
 
 
-    for cinput in enumerate(args.input):
+    for cinput in args.input:
         with open(cinput, mode='rb') as f:
             out_bin = pickle.load(f)
 
