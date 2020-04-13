@@ -19,12 +19,29 @@ def main():
     argp.add_argument('input', nargs='+', type=str, help='Input binary pickle file path')
     argp.add_argument('-xmax', '--x_max'     , type=int, required=True, help='Maximum X value')
     argp.add_argument('-xinv', '--x_interval', type=int, required=True, help='X value interval')
+    argp.add_argument('-t'   , '--stat_types', nargs='+', type=str, default=['mean'], choices=['min', 'max', 'mean', 'sd'], help='Statistic value types')
     args = argp.parse_args()
 
     xlist = range(0, args.x_max+1, args.x_interval)
-    print('\t'.join(['{:20}'.format(''), *('{:>10}'.format(x) for x in chain.from_iterable([x, '', '', ''] for x in xlist))]))
-    print('\t'.join(['{:20}'.format(''), *('{:>10}'.format(x) for x in ['min', 'max', 'mean', 'sd'] * len(xlist))]))
     
+    # print x value (number of updates)
+    print('\t'.join(['{:20}'.format(''), *('{:>10}'.format(x) for x in chain.from_iterable(
+        [x, *([''] * (len(args.stat_types) - 1))] for x in xlist))]
+    ))
+    
+    # print statistics type if multiple statistics types are specified
+    if len(args.stat_types) > 1:
+        print('\t'.join(['{:20}'.format(''), *('{:>10}'.format(x) for x in args.stat_types * len(xlist))]))
+    
+    calcer_dict = {
+        'min' : lambda values, xlist: min_values(values, xlist),
+        'max' : lambda values, xlist: max_values(values, xlist),
+        'mean': lambda values, xlist: average_values(values, xlist),
+        'sd'  : lambda values, xlist: sd_values(values, xlist),
+    }
+
+    calcers = [calcer_dict[stat_type] for stat_type in args.stat_types]
+
     for _input in args.input:
         with open(_input, mode='rb') as f:
             binary = pickle.load(f)
@@ -33,17 +50,11 @@ def main():
         name = os.path.splitext(os.path.basename(_input))[0]
         values = [[*states_to_values_by_update(states)] for states in states_list]
 
+        stat_values = (calcer(values, xlist) for calcer in calcers)
+
         print('\t'.join([
             '{:20}'.format(name),
-            *chain.from_iterable(
-                ['{:10.03f}'.format(vmin), '{:10.03f}'.format(vmax), '{:10.03f}'.format(ave), '{:10.03f}'.format(sd)]
-                for vmin, vmax, ave, sd in zip(
-                    min_values(values, xlist),
-                    max_values(values, xlist),
-                    average_values(values, xlist),
-                    sd_values(values, xlist)
-                )
-            )
+            *chain.from_iterable(('{:10.03f}'.format(value) for value in value_tuple) for value_tuple in zip(*stat_values))
         ]))
 
 
