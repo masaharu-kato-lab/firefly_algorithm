@@ -119,3 +119,5 @@ nohup.out
 
 # secret folders and files
 notes/
+/trial
+/src/trial
