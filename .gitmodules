@@ -1,0 +1,3 @@
+[submodule "modules/pipeit"]
+	path = modules/pipeit
+	url = https://github.com/masaharu-kato/pipeit
