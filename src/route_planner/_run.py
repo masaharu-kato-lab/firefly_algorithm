@@ -35,7 +35,9 @@ def main():
     pathdata = route.PathData(args.input)
     calc_value = get_calc_value(args, pathdata=pathdata)
     init_p_perms_by_seed:Dict[int, List[build.PatternedPermutation]] = {}
-    states_by_seed:Dict[int, Dict[int, AttrDict]] = {}
+    states_by_seed  :Dict[int, Dict[int, AttrDict]] = {}
+    bests_by_seed   :Dict[int, List[Value]] = {}
+    variants_by_seed:Dict[int, List[int]] = {}
 
     start_seed = args.seed
     start_init_seed = args.init_seed
@@ -46,7 +48,8 @@ def main():
         args.init_seed = (seed - start_seed) + start_init_seed
         args.output_filename = '{}/{}.txt'.format(args.output, datetime.now().strftime("%Y%m%d_%H%M%S_%f")) if args.n_run > 1 else '{}.txt'.format(args.output)
 
-        init_p_perms_by_seed[args.seed], states_by_seed[args.seed] = run(args, pathdata = pathdata, calc_value = calc_value)
+        init_p_perms_by_seed[args.seed], states_by_seed[args.seed], bests_by_seed[args.seed], variants_by_seed[args.seed] \
+             = run(args, pathdata = pathdata, calc_value = calc_value)
 
 
     if not args.no_binary_output:
@@ -55,7 +58,9 @@ def main():
         out_bin.init_p_perms_by_seed = init_p_perms_by_seed
         out_bin.states_by_seed = states_by_seed
         out_bin.final_states_by_seed = {seed:list(states.items())[-1][1] for seed, states in states_by_seed.items()}
-        
+        out_bin.bests_by_seed = bests_by_seed
+        out_bin.variants_by_seed = variants_by_seed
+
         path = args.binary_output if args.binary_output is not None else args.output + '.pickle'
         log.prepare_directory(path)
         with open(path, mode='wb') as f:
@@ -85,12 +90,12 @@ def run(args, *,
 
     if not args.init_only:
         logfile.write('#Iterations')
-        states = optimize(args, logfile, nodes=pathdata.nodes, calc_value=calc_value, init_indivs=init_indivs, init_val_of=val_of)
+        states, bests_by_update, variants_by_update = optimize(args, logfile, nodes=pathdata.nodes, calc_value=calc_value, init_indivs=init_indivs, init_val_of=val_of)
         logfile.write('#END')
     
     logfile.write('#EOF').flush()
 
-    return init_p_perms, states
+    return init_p_perms, states, bests_by_update, variants_by_update
 
 
 
@@ -108,6 +113,9 @@ def optimize(
 
     states:Dict[int, AttrDict] = {}
 
+    bests_by_update:List[Value] = []
+    variants_by_update:List[int] = []
+
     # Run firefly algorithm
     for state in firefly.run(
         nodes            = nodes,
@@ -120,6 +128,8 @@ def optimize(
         blocked_alpha    = args.blocked_alpha,
         skip_check       = args.skip_check,
         use_jordan_alpha = args.use_jordan_alpha,
+        bests_out        = bests_by_update,
+        variants_out     = variants_by_update,
     ):  
         states[state.itr] = state
         
@@ -144,7 +154,7 @@ def optimize(
     if args.show_progress:
         print('', file=sys.stderr)
 
-    return states
+    return states, bests_by_update, variants_by_update
 
 
 

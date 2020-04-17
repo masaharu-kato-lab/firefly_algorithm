@@ -23,16 +23,18 @@ def hamming(seq1, seq2):
 
 # Firefly algorithm calculation class
 def run(*,
-    init_indivs     : List[List[Node]],   # Initial individuals permutation
-    init_val_of     : List[Value] = None, # Initial individuals evaluation value (optional)
-    nodes           : List[Node],         # List of nodes
-    calc_value      : Callable,           # Objective function (originally means light intensity (luminosity) of fireflies)
-    gamma           : float,              # gamma value
-    alpha           : float,              # alpha value
-    blocked_alpha   : float = None,       # alpha value on fireflies are blocked (None to equal to normal alpha)
-    continue_coef   : Callable,           # Number of iteration
-    skip_check      : bool = False,       # Skip permutation validation if true
-    use_jordan_alpha: bool                # Use jordan's method in alpha step
+    init_indivs     : List[List[Node]],             # Initial individuals permutation
+    init_val_of     : List[Value] = None,           # Initial individuals evaluation value (optional)
+    nodes           : List[Node],                   # List of nodes
+    calc_value      : Callable,                     # Objective function (originally means light intensity (luminosity) of fireflies)
+    gamma           : float,                        # gamma value
+    alpha           : float,                        # alpha value
+    blocked_alpha   : Optional[float] = None,       # alpha value on fireflies are blocked (`None` to equal to normal alpha, `0` to disable)
+    continue_coef   : Callable,                     # Number of iteration
+    skip_check      : bool = False,                 # Skip permutation validation if true
+    use_jordan_alpha: bool,                         # Use jordan's method in alpha step
+    bests_out       : Optional[List[Value]] = None, # List to output best value by updates
+    variants_out    : Optional[List[int]]   = None, # List to output variants by updates
 ) -> AttrDict:
     
     if not init_indivs: raise RuntimeError('No individuals.')
@@ -59,6 +61,10 @@ def run(*,
     best_itr = None
     best_plan = None
 
+    best_value:Value = state.best_plan.value
+    best_value_by_update = [best_value]
+    variants_by_update = [len(set(v.value for v in val_of))]
+
     t = 1
     while True:
         start_time = time.time()
@@ -75,12 +81,20 @@ def run(*,
 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
                 if val_of[i] > val_of[j]:
-                    current_n_updates += 1
 
                     beta = 1 / (1 + gamma * hamming(x[i], x[j]))
                     new_beta_x = beta_step(x[i], x[j], nodes, indexes, beta)
                     x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0), use_jordan_alpha)
                     val_of[i] = calc_value(x[i])
+
+                    current_value = val_of[i].value
+                    if best_value > current_value: best_value = current_value
+                    best_value_by_update.append(best_value)
+
+                    variants_by_update.append(len(set(v.value for v in val_of)))
+
+                    n_updates += 1
+                    current_n_updates += 1
 
                     if not skip_check and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
@@ -88,6 +102,15 @@ def run(*,
         best_id = np.argmin(val_of)
 
         if current_n_updates == 0:
+
+            # check all values are equal
+            value_0 = val_of[0].value
+            if not all(v.value == value_0 for v in val_of):
+                raise RuntimeError('All values are not equal.')
+
+            if blocked_alpha == 0:
+                break
+
             for i in range(len(x)):
                 if(i != best_id):
                     x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0), use_jordan_alpha)
@@ -105,8 +128,6 @@ def run(*,
             best_itr = t
             best_plan = val_of[best_id]
 
-        n_updates += current_n_updates
-
 
         state = AttrDict()
         state.itr = t
@@ -122,6 +143,9 @@ def run(*,
         if not continue_coef(state): break
 
         t += 1
+
+    if bests_out is not None: bests_out.extend(best_value_by_update)
+    if variants_out is not None: variants_out.extend(variants_by_update)
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)

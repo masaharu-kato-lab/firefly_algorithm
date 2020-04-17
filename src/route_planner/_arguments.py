@@ -11,7 +11,7 @@ def parse():
     argp.add_argument('-ni'  , '--n_indiv'         , type=int  , required=True    , help='Number of individual (firefly)')
     argp.add_argument('-g'   , '--gamma'           , type=float, required=True    , help='Gamma value (beta-step coefficient)')
     argp.add_argument('-a'   , '--alpha'           , type=float, required=True    , help='Alpha value (alpha-step coefficient)')
-    argp.add_argument('-ba'  , '--blocked_alpha'   , type=float, default =None    , help='Alpha value on fireflies are blocked (Default: equals to normal alpha)')
+    argp.add_argument('-ba'  , '--blocked_alpha'   , type=float, default =None    , help='Alpha value on fireflies are blocked (Default: equals to normal alpha, 0: disable)')
     argp.add_argument('-sw'  , '--safety_weight'   , type=float, default=10000    , help='Weight value of safety on objective function')
     argp.add_argument('-dw'  , '--distance_weight' , type=float, default=1        , help='Weight value of distance on objective function')
     argp.add_argument('-tmin', '--n_min_iterate'   , type=int  , default =None    , help='Minimum number of iteration (Optional)')
