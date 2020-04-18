@@ -33,8 +33,8 @@ def run(*,
     continue_coef   : Callable,                     # Number of iteration
     skip_check      : bool = False,                 # Skip permutation validation if true
     use_jordan_alpha: bool,                         # Use jordan's method in alpha step
-    bests_out       : Optional[List[Value]] = None, # List to output best value by updates
-    variants_out    : Optional[List[int]]   = None, # List to output variants by updates
+    bests_out       : Optional[Dict[int, int]] = None, # List to output best value by updates
+    variants_out    : Optional[Dict[int, int]] = None, # List to output variants by updates
 ) -> AttrDict:
     
     if not init_indivs: raise RuntimeError('No individuals.')
@@ -47,33 +47,27 @@ def run(*,
     state = AttrDict()
     state.itr = 0
     state.n_updates = 0
-    state.best_itr = 0
     state.best_plan = val_of[np.argmin(val_of)]
-    state.n_best_updates = 0
+    state.best_is_updated = True
     state.elapsed_time = 0
-    state.current_n_updates = 0
     yield state
 
     indexes = list(range(len(nodes)))
     
     n_updates = 0
-    n_best_updates = 0
     best_itr = None
-    best_plan = None
-
-    best_value:Value = state.best_plan.value
-    best_value_by_update = [best_value]
-    variants_by_update = [len(set(v.value for v in val_of))]
+    best_plan = state.best_plan
 
     t = 1
     while True:
         start_time = time.time()
-
-        current_n_updates = 0
+        best_is_updated = False
+        ff_updated = False
 
         sorted_id = np.argsort(val_of)
         x = [x[i] for i in sorted_id]
         val_of = [val_of[i] for i in sorted_id]
+
 
         # Repeats for all combinations of fireflies
         for i in range(len(x)):
@@ -81,71 +75,67 @@ def run(*,
 
                 # Move firefly 'i' towards firefly 'j' if objective function value of 'j' is smaller than 'i'
                 if val_of[i] > val_of[j]:
-
+                    
                     beta = 1 / (1 + gamma * hamming(x[i], x[j]))
                     new_beta_x = beta_step(x[i], x[j], nodes, indexes, beta)
                     x[i] = alpha_step(new_beta_x, indexes, int(np.random.rand() * alpha + 1.0), use_jordan_alpha)
-                    val_of[i] = calc_value(x[i])
+                    current_plan = val_of[i] = calc_value(x[i])
+                    ff_updated = True
 
-                    current_value = val_of[i].value
-                    if best_value > current_value: best_value = current_value
-                    best_value_by_update.append(best_value)
-
-                    variants_by_update.append(len(set(v.value for v in val_of)))
-
+                    if best_plan > current_plan:
+                        best_plan = current_plan
+                        best_is_updated = True
+                        if bests_out:
+                            bests_out[n_updates] = best_plan
                     n_updates += 1
-                    current_n_updates += 1
-
                     if not skip_check and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
 
-        best_id = np.argmin(val_of)
+        if variants_out:
+            variants_out[n_updates] = len(set(v.value for v in val_of))
 
-        if current_n_updates == 0:
+
+        if not ff_updated:
 
             # check all values are equal
             value_0 = val_of[0].value
-            if not all(v.value == value_0 for v in val_of):
+            if not skip_check and not all(v.value == value_0 for v in val_of):
                 raise RuntimeError('All values are not equal.')
 
             if blocked_alpha == 0:
                 break
 
-            for i in range(len(x)):
-                if(i != best_id):
-                    x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0), use_jordan_alpha)
-                    val_of[i] = calc_value(x[i])
+            for i in range(1, len(x)):
+                x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0), use_jordan_alpha)
+                current_plan = val_of[i] = calc_value(x[i])
 
-                    if not skip_check and not permutation.is_valid(x[i], nodes):
-                        raise RuntimeError('Invalid permutation.')
-                        
-            best_id = np.argmin(val_of)
-
-
-
-        if best_plan is None or val_of[best_id] < best_plan:
-            n_best_updates += 1
-            best_itr = t
-            best_plan = val_of[best_id]
+                if best_plan > current_plan:
+                    best_plan = current_plan
+                    best_is_updated = True
+                    if bests_out:
+                        bests_out[n_updates] = best_plan
+                n_updates += 1
+                if not skip_check and not permutation.is_valid(x[i], nodes):
+                    raise RuntimeError('Invalid permutation.')
+                      
+            if variants_out:
+                variants_out[n_updates] = len(set(v.value for v in val_of))
 
 
         state = AttrDict()
         state.itr = t
         state.n_updates = n_updates
-        state.best_itr = best_itr
         state.best_plan = best_plan
-        state.n_best_updates = n_best_updates
+        state.best_is_updated = best_is_updated
         state.elapsed_time = time.time() - start_time
-        state.current_n_updates = current_n_updates
-
         yield state
 
-        if not continue_coef(state): break
+
+        if not continue_coef(state):
+            break
 
         t += 1
 
-    if bests_out is not None: bests_out.extend(best_value_by_update)
-    if variants_out is not None: variants_out.extend(variants_by_update)
 
 
 # Beta step (attract between perm1 and perm2 based on beta value)

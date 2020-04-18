@@ -133,12 +133,11 @@ def optimize(
     ):  
         states[state.itr] = state
         
-        if state.itr == state.best_itr:
+        if state.best_is_updated:
             
             logfile.write(args.format_itr.format(
                 t    = state.itr,
                 nup  = state.n_updates,
-                nbup = state.n_best_updates,
                 v    = state.best_plan.value,
                 sv   = state.best_plan.average_safety,
                 dv   = state.best_plan.total_distance,
@@ -246,24 +245,10 @@ def make_continue_coef(args):
     if args.n_updates:
         return lambda idv: idv.n_updates <= args.n_updates
 
-    if args.n_itr_steady:
-        check_steady = lambda idv: (idv.itr - idv.best_itr) < args.n_itr_steady
-        if args.n_min_iterate:
-            if args.n_max_iterate:
-                if args.n_min_iterate > args.n_max_iterate:
-                    raise RuntimeError('Maximum iteration is smaller than minimum iteration.')
-                return lambda idv: idv.itr <= args.n_min_iterate or (idv.itr <= args.n_max_iterate and check_steady(idv))
-            return lambda idv: idv.itr <= args.n_min_iterate or check_steady(idv)
-        if args.n_max_iterate:
-            return lambda idv: idv.itr <= args.n_max_iterate and check_steady(idv)
-        return lambda idv: check_steady(idv)
-    else:
-        if args.n_min_iterate:
-            return lambda idv: idv.itr <= args.n_min_iterate
-        if args.n_max_iterate:
-            return lambda idv: idv.itr <= args.n_max_iterate
+    if args.n_iterates:
+        return lambda idv: idv.itr <= args.n_iterates
     
-    raise RuntimeError('All of minimum and maximum and steady iterations are not specified.')
+    raise RuntimeError('No termination terms are specified.')
 
 
 
