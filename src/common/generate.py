@@ -8,6 +8,8 @@ from dataclasses import dataclass
 
 from typing import Any, Callable, Dict, Iterable, List, Set, Tuple, Union, Optional, Generic
 
+from .clustering import clustering
+
 Node = Generic('Node')
 
 def main():
@@ -46,15 +48,15 @@ class Generator(Generic[Node]):
         self.methods   = methods
 
 
-    def generate_with_dof(self, total_number:int) -> List[PatternedPermutation]:
-        return self.generate_with_multiple_pattern(self.calc_number_of_pattern(total_number))
+    def generate_with_dof(self, total_number:int) -> List:
+        return self.generate_with_multiple_pattern(self.n_of_patterns_with_total(total_number))
 
 
-    def generate_with_multiple_pattern(self, number_of_pattern:Dict[Method, int]) -> List[PatternedPermutation]:
+    def generate_with_multiple_pattern(self, number_of_pattern:Dict[Method, int]) -> List:
         return [*chain.from_iterable((self.generate_with_pattern(pattern) for _ in range(number)) for pattern, number in number_of_pattern.items())]
 
 
-    def generate_with_pattern(self, pattern:Iterable[Method]) -> PatternedPermutation:
+    def generate_with_pattern(self, pattern:Iterable[Method]):
         return chain.from_iterable(Permutation(method(cluster), method) for method, cluster in zip(pattern, self.clusters))
 
 
