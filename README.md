@@ -3,7 +3,8 @@ Implementation of Firefly Algorithm
 
 # Installation
 ```
-virtualenv env --python=/usr/bin/python3
+python3.8 -m venv env
+source env/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -15,7 +16,7 @@ source env/bin/activate
   
 - OPU Route Problem (Example)
 ```
-python src/discrete/_run_opu.py -n 30 -g 0.01502 -a 2.0 -ba 2.0 -t 100 -d 2 -u 0 --init random --quiet --stdout
+??????.py -n 30 -g 0.01502 -a 2.0 -ba 2.0 -t 100 -d 2 -u 0 --init random --quiet --stdout
 ```  
   
 - After running
