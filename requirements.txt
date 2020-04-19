@@ -1,5 +1,3 @@
-astroid
-attrdict
-matplotlib
+pytest
 mypy
-numpy
+matplotlib
