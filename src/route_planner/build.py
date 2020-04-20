@@ -1,5 +1,6 @@
 import copy
 from itertools import chain, product
+import functools
 
 import numpy as np #type:ignore
 
@@ -99,7 +100,7 @@ class Builder:
         return number_of_patterns
 
 
-def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 0, start_node:Optional[Node] = None) -> PatternedPermutation:
+def build_greedy(nodes:List[Node], dist:Callable, dist_compare:Callable, nn_n_random:int = 0, start_node:Optional[Node] = None) -> PatternedPermutation:
 
     ordered_nodes = []
     remain_nodes = copy.copy(nodes)
@@ -110,11 +111,19 @@ def build_greedy(nodes:List[Node], dist:Callable, nn_n_random:int = 0, start_nod
         if i_itr < nn_n_random:
             target_id = np.random.choice(range(len(remain_nodes)))
         else:
-            if last_node is None: raise RuntimeError('Start node required.')
-            dists = np.array([dist(last_node, node) for node in remain_nodes])
-            min_ids = np.where(dists == dists.min())[0]
-            if len(min_ids) > 1: print("choice one from multiple.")
-            target_id = np.random.choice(min_ids) if len(min_ids) > 1 else min_ids[0]
+            if last_node is None:
+                raise RuntimeError('Start node required.')
+
+            dists = [dist(last_node, node) for node in remain_nodes]
+            min_dist = min(dists, key=functools.cmp_to_key(dist_compare))
+            min_ids = [i for i, dist in enumerate(dists) if dist == min_dist]
+
+            if len(min_ids) > 1:
+                raise RuntimeError('Same distance values.')
+            target_id = min_ids[0]
+
+            # if len(min_ids) > 1: print("choice one from multiple.")
+            # target_id = np.random.choice(min_ids) if len(min_ids) > 1 else min_ids[0]
         
         last_node = remain_nodes[target_id]
         ordered_nodes.append(last_node)

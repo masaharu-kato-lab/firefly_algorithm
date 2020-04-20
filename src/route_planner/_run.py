@@ -162,8 +162,8 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
     np.random.seed(seed = args.init_seed)
 
-    bld_dist = distances.get_func(args.init_bld_dist, pathdata = pathdata) # , w_angle=args.init_bld_dist_w
-    cls_dist = distances.get_func(args.init_cls_dist, pathdata = pathdata) # , w_angle=args.init_cls_dist_w
+    bld_dist = distances.get_multiple_func(args.init_bld_dists, pathdata = pathdata)
+    cls_dist = distances.get_multiple_func(args.init_cls_dists, pathdata = pathdata)
 
     n_random = round(args.init_random_rate * args.n_indiv)
     n_special = args.n_indiv - n_random
@@ -179,12 +179,12 @@ def init(args, *, pathdata:route.PathData) -> List[build.PatternedPermutation]:
 
     # Cluster-patterned generation
     if n_special:
-        clusters_nodes = clustering.get_function(method = args.init_cls_method, nodes = pathdata.nodes, n_cluster = args.init_n_cls, dist = cls_dist)()
+        clusters_nodes = clustering.get_function(method = args.init_cls_method, nodes = pathdata.nodes, n_cluster = args.init_n_cls, dist = cls_dist, dist_compare = distances.compare_multiple)()
 
         if args.init_bld_method == 'rg':
             builder = build.Builder(methods_func_dof = {
                 'R': (lambda nodes: build.build_randomly(nodes), 1),
-                'G': (lambda nodes: build.build_greedy(nodes, bld_dist, nn_n_random=args.init_greedy_rnum, start_node=pathdata.home_poses[0]), 0),
+                'G': (lambda nodes: build.build_greedy(nodes, bld_dist, distances.compare_multiple, nn_n_random=args.init_greedy_rnum, start_node=pathdata.home_poses[0]), 0),
             }, clusters_nodes = clusters_nodes)
             init_p_perms.extend(builder.build_with_dof(n_special))
 
