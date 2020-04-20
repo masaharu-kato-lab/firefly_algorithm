@@ -115,6 +115,15 @@ def run(*,
                 if(i != best_id):
                     x[i] = alpha_step(x[i], indexes, int(np.random.rand() * blocked_alpha + 1.0), use_jordan_alpha)
                     val_of[i] = calc_value(x[i])
+                    
+                    current_value = val_of[i].value
+                    if best_value > current_value: best_value = current_value
+                    best_value_by_update.append(best_value)
+
+                    variants_by_update.append(len(set(v.value for v in val_of)))
+
+                    n_updates += 1
+                    current_n_updates += 1
 
                     if not skip_check and not permutation.is_valid(x[i], nodes):
                         raise RuntimeError('Invalid permutation.')
