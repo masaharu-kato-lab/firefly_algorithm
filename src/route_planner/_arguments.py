@@ -28,8 +28,8 @@ def parse():
     argp.add_argument('-fmtt', '--format_terminate', type=str  , default =None    , help='Format text to message for terminate')
     argp.add_argument('-ibm' , '--init_bld_method' , type=str  , default ="rg"    , choices=["r", "rg"], help="Building method in initialization, 'r' for no random only, 'rg' for both random and greedy.")
     argp.add_argument('-icm' , '--init_cls_method' , type=str  , default ="none"  , choices=["none", "rmed", "pamed"], help="Clustering method in initialization, 'none' for no clustering, 'rmed' (random medoids) or 'pamed' (partitioning around medoids)")
-    argp.add_argument('-ibdm', '--init_bld_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial building")
-    argp.add_argument('-icdm', '--init_cls_dist'   , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], help="Distance method in initial clustering (only works when clustering is available)")
+    argp.add_argument('-ibdm', '--init_bld_dists'  , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], nargs='+', help="Distance method in initial building")
+    argp.add_argument('-icdm', '--init_cls_dists'  , type=str  , default =None    , choices=["euclid", "aster", "angle", "polar"], nargs='+', help="Distance method in initial clustering (only works when clustering is available)")
     argp.add_argument('-inc' , '--init_n_cls'      , type=int  , default =None    , help="Number of clusters (only works when `--init_cls_method` is not 'none')")
     argp.add_argument('-irr' , '--init_random_rate', type=float, default =0.0     , help="Rate of random generation in initialization building")
     argp.add_argument('-igrn', '--init_greedy_rnum', type=int  , default =0       , help='Number of nodes which is generated randomly in the greedy arrangement in initial building')
@@ -45,14 +45,14 @@ def parse():
     args = argp.parse_args()
 
     if args.init_cls_method == "none":
-        if args.init_n_cls is not None or args.init_cls_dist is not None:
+        if args.init_n_cls is not None or args.init_cls_dists is not None:
             raise RuntimeError("`--init_cls_method` must not be 'none'.")
 
     if args.binary_output is not None and args.no_binary_output:
         raise RuntimeError("`--no_binary_output` specified, but `--binary_output` specified.")
 
-    if args.init_cls_dist is None: args.init_cls_dist = 'aster'
-    if args.init_bld_dist is None: args.init_bld_dist = 'aster'
+    if args.init_cls_dists is None: args.init_cls_dists = ['aster', 'euclid']
+    if args.init_bld_dists is None: args.init_bld_dists = ['aster', 'euclid']
 
     if args.n_updates is not None:
         if args.n_min_iterate is not None: raise RuntimeError('Cannot use `--n_min_iterate` with `--n_updates`.')
