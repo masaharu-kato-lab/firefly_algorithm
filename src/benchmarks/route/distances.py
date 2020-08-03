@@ -1,5 +1,4 @@
 import math
-from route_planner import drone_simulator
 from src.common.basic_math import  cos_sim, diff, euclid, euclid_sq
 from typing import Any, Callable, Iterable, Optional
 
@@ -11,9 +10,11 @@ def polar_distance(v1:Iterable, v2:Iterable, origin:Iterable) -> Optional[float]
     if cossim_val is None: return None
     return math.pi/2 * abs(diff(euclid_sq(ov1), euclid_sq(ov2))) * math.acos(cossim_val)
 
+
 # distance based on radius
 def radius_distance(v1:Iterable, v2:Iterable, origin:Iterable) -> float:
     return abs(diff(euclid(v1, origin), euclid(v2, origin)))
+
 
 # distance based on angle
 def angle_distance(v1:Iterable, v2:Iterable, origin:Iterable) -> Optional[float]:

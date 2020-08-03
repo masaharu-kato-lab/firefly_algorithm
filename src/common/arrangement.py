@@ -8,15 +8,15 @@ Node = Generic('Node', Any)
 def greedy(graph:Graph[Node], node_set:Set[Node]=None, init_node:Optional[Node]=None, n_random:int=0) -> List[Node]:
 
     remains = graph.node_set.copy() if node_set is None else node_set
-    ret = random.sample(remains, n_random)
+    result:List[Node] = random.sample(remains, n_random)
 
     last = init_node
-    while(remains):
+    while remains:
         last = graph.nearest(last, remains)
-        ret.append(last)
+        result.append(last)
         remains.pop(last)
 
-    return ret
+    return result
 
 
 def randomly(node_set:Set[Node], n:Optional[int]=None) -> List[Node]:

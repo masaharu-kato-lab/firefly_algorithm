@@ -6,58 +6,55 @@ from functools import total_ordering
 
 # from types import List, Dict, Tuple, Node
 
-from typing import List, Dict, Tuple
-Node = Tuple[int, int]
+from typing import Any, List, Dict, Tuple, Generic, TypeVar
+Pos = TypeVar('Pos', Any)
 Time = float
 
 
+# 代わりに Graph を使う
+# class Field(Generic[Pos]):
 
-class PathData:
+#     def __init__(self, filepath : str):
 
-    def __init__(self, filepath : str):
-        with open(filepath, "rb") as f:
-            mapper = pickle.load(f)
+#         self.node_ = nodes
+#         self.node_set = set(self.nodes)
+#         self.home_poses = mapper.starting_point
+#         self.distance_of = {node_pair:path[1] for node_pair, path in mapper.paths.items()}
 
-        self.nodes = mapper.default_targets
-        self.node_set = set(self.nodes)
-        self.home_poses = mapper.starting_point
-        self.distance_of = {node_pair:path[1] for node_pair, path in mapper.paths.items()}
-
-        self.nodes_to_index:Dict[Node, int] = {}
-        for i, node in enumerate(self.nodes):
-            self.nodes_to_index[node] = i + 1
+#         self.nodes_to_index:Dict[Node, int] = {}
+#         for i, node in enumerate(self.nodes):
+#             self.nodes_to_index[node] = i + 1
 
 
-    # Calc distance of two points
-    def distance(self, c1:Node, c2:Node) -> float:
-        if c1 == c2: return 0.0
-        return self.distance_of[(c1, c2)]
+#     # Calc distance of two points
+#     def distance(self, c1:Node, c2:Node) -> float:
+#         if c1 == c2: return 0.0
+#         return self.distance_of[(c1, c2)]
 
 
-    # Calc distance of coords
-    def distance_of_nodes(self, nodes:List[Node]) -> float:
+#     # Calc distance of coords
+#     def distance_of_nodes(self, nodes:List[Node]) -> float:
 
-        distance = 0.0
-        for i in range(len(nodes)-1):
-            distance += self.distance(nodes[i], nodes[i+1])
+#         distance = 0.0
+#         for i in range(len(nodes)-1):
+#             distance += self.distance(nodes[i], nodes[i+1])
 
-        return distance
+#         return distance
 
 
-class DroneProperty:
-
-    def __init__(self, pathdata:PathData):
-        self.pathdata = pathdata
-        self.home_pos = pathdata.home_poses[0]
-        self.speed = 0.5
-        self.battery_capacity = 3000.0
-        self.battery_per_distance = 1.0
+@dataclass
+class VehicleProperty(Generic[Pos]):
+    field                : Field[Pos]
+    home_pos             : Pos
+    speed                : float # = 0.5
+    battery_capacity     : float # = 3000.0
+    battery_per_distance : float # = 1.0
 
 
 
-class Drone:
+class Vehicle(Generic[Pos]):
 
-    def __init__(self, props:DroneProperty):
+    def __init__(self, props:VehicleProperty[Pos]):
         self.props = props
 
         self.pos_history = [self.props.home_pos]
@@ -67,11 +64,11 @@ class Drone:
         self.battery_remain = self.props.battery_capacity
 
 
-    def _distance(self, c1:Node, c2:Node) -> float:
+    def _distance(self, c1:Pos, c2:Pos) -> float:
         return self.props.pathdata.distance(c1, c2)
 
 
-    def move_to(self, target:Node) -> None:
+    def move_to(self, target:Pos) -> None:
         if self.last_pos == target: return
 
         c_distance = self._distance(self.last_pos, target)
@@ -90,8 +87,7 @@ class Drone:
             self.battery_remain = self.props.battery_capacity
 
 
-
-    def try_move_to(self, target:Node) -> bool:
+    def try_move_to(self, target:Pos) -> bool:
 
         if self._distance(self.last_pos, target) + self._distance(target, self.props.home_pos) > self.battery_remain:
             return False
@@ -107,14 +103,14 @@ class Drone:
 class PlanGenerator:
 
     def __init__(self, *,
-        pathdata:PathData,
-        drone_prop:DroneProperty,
+        field:Field,
+        vehicle_prop:VehicleProperty,
         n_drones:int,
         safety_weight:float, # weight of uncertainly
         distance_weight:float, # weight of distance
     ):
-        self.pathdata = pathdata
-        self.drone_prop = drone_prop
+        self.field = field
+        self.vehicle_prop = vehicle_prop
         self.n_drones = n_drones
         self.safety_weight = safety_weight
         self.distance_weight = distance_weight
@@ -129,9 +125,9 @@ class Plan:
 
     def __init__(self, props:PlanGenerator, clusters_nodes:List[List[Node]]):
         self.clusters_nodes = clusters_nodes
-        self.drones = [Drone(props.drone_prop) for _ in range(props.n_drones)]
+        self.vehicles = [Vehicle(props.vehicle_prop) for _ in range(props.n_drones)]
 
-        nodes_to_index = props.drone_prop.pathdata.nodes_to_index
+        nodes_to_index = props.vehicle_prop.pathdata.nodes_to_index
 
         last_visit_time_on_nodes = {}
         i_drone = 0
@@ -143,25 +139,25 @@ class Plan:
             remain_nodes = copy.copy(nodes)
 
             while len(remain_nodes):
-                drone = self.drones[i_drone]
+                vehicle = self.vehicles[i_drone]
                 text += '|{}>'.format(i_drone)
 
                 while len(remain_nodes):
                     node = remain_nodes[0]
-                    if not drone.try_move_to(node): break
-                    last_visit_time_on_nodes[node] = drone.elapsed_time
+                    if not vehicle.try_move_to(node): break
+                    last_visit_time_on_nodes[node] = vehicle.elapsed_time
                     text += '{:>2} '.format(nodes_to_index[node])
                     remain_nodes.pop(0)
                         
-                drone.return_home()
+                vehicle.return_home()
                 i_drone = (i_drone + 1) % props.n_drones
 
             text += ']'
 
 
 
-        self.total_distance = sum([drone.total_distance for drone in self.drones])
-        self.whole_time = max([drone.elapsed_time   for drone in self.drones])
+        self.total_distance = sum([vehicle.total_distance for vehicle in self.vehicles])
+        self.whole_time = max([vehicle.elapsed_time   for vehicle in self.vehicles])
         safety_on_nodes = [math.exp(-0.001279214 * (self.whole_time - last_visit_time)) for last_visit_time in last_visit_time_on_nodes.values()]
         self.average_safety = sum(safety_on_nodes) / len(safety_on_nodes)
 

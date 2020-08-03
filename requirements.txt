@@ -1,3 +1,9 @@
+# common
+more-itertools
+
+# for debug
 pytest
 mypy
+
+# for tools
 matplotlib
